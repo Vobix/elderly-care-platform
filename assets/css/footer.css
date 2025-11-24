@@ -1,0 +1,37 @@
+/**
+ * Footer Styles
+ */
+
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+}
+
+footer p {
+    margin: 0;
+}
+
+footer p + p {
+    margin-top: 10px;
+}
+
+footer a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+footer a:hover {
+    color: #ddd;
+}
+
+.high-contrast footer {
+    background: #000;
+    border-top: 3px solid #ffff00;
+}
+
+.high-contrast footer a {
+    color: #ffff00;
+}

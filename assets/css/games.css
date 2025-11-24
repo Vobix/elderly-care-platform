@@ -1,0 +1,162 @@
+/* Games List Page Styles */
+
+.games-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.games-header h1 {
+    font-size: 42px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.game-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    border-left: 5px solid;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.tap-only .game-card:hover {
+    transform: none;
+}
+
+.game-icon {
+    font-size: 64px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.game-name {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.game-description {
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.game-benefits {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.game-stats {
+    background: #e3f2fd;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.game-stats strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.difficulty-selector {
+    margin-top: 20px;
+}
+
+.difficulty-selector label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.difficulty-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.difficulty-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+}
+
+.difficulty-btn:hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.difficulty-btn.easy {
+    border-color: #28a745;
+}
+
+.difficulty-btn.medium {
+    border-color: #ffc107;
+}
+
+.difficulty-btn.hard {
+    border-color: #dc3545;
+}
+
+/* High Contrast Mode */
+.high-contrast .games-header h1 {
+    color: #ffff00;
+}
+
+.high-contrast .game-card {
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+}
+
+.high-contrast .game-description {
+    color: #ccc;
+}
+
+.high-contrast .game-benefits {
+    background: #222;
+    color: #aaa;
+}
+
+.high-contrast .game-stats {
+    background: #003366;
+    color: #fff;
+}
+
+.high-contrast .difficulty-btn {
+    background: #000;
+    color: #fff;
+    border-color: #ffff00;
+}
+
+.high-contrast .difficulty-btn:hover {
+    background: #333;
+}

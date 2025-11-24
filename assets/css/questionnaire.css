@@ -1,0 +1,70 @@
+/* Questionnaire Page Styles */
+
+.questionnaire-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.question-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.question {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.answer-options {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.answer-option {
+    flex: 1;
+    min-width: 100px;
+}
+
+.answer-option input[type="radio"] {
+    display: none;
+}
+
+.answer-option label {
+    display: block;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.answer-option input[type="radio"]:checked + label {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* High Contrast Mode */
+.high-contrast .question-card {
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+}
+
+.high-contrast .answer-option label {
+    background: #000;
+    border-color: #ffff00;
+    color: #fff;
+}
+
+.high-contrast .answer-option input[type="radio"]:checked + label {
+    background: #ffff00;
+    color: #000;
+}

@@ -1,0 +1,448 @@
+/* Common Game Play Styles - Shared across all games */
+
+.game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+}
+
+.game-header {
+    margin-bottom: 30px;
+}
+
+.game-header h1 {
+    font-size: 36px;
+    color: #4CAF50;
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.info-box {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    min-width: 120px;
+}
+
+.info-box .label {
+    font-size: 14px;
+    color: #666;
+}
+
+.info-box .value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.game-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.game-buttons .btn {
+    padding: 15px 30px;
+    font-size: 18px;
+}
+
+.instructions {
+    background: #e3f2fd;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.message {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
+    min-height: 30px;
+}
+
+.correct {
+    color: #28a745;
+}
+
+.incorrect {
+    color: #dc3545;
+}
+
+/* Memory Game Specific */
+.sequence-display {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin: 30px 0;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sequence-numbers {
+    display: flex;
+    gap: 15px;
+    font-size: 48px;
+    font-weight: bold;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.number-box {
+    width: 80px;
+    height: 80px;
+    background: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 42px;
+    animation: popIn 0.3s;
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+.input-area {
+    margin: 30px 0;
+}
+
+.input-boxes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.input-box {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    text-align: center;
+    border: 3px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.input-box:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+/* Attention Game Specific */
+.target-display {
+    background: white;
+    padding: 80px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin: 30px 0;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shape {
+    font-size: 120px;
+    animation: shapeAppear 0.3s;
+}
+
+@keyframes shapeAppear {
+    from { transform: scale(0) rotate(0deg); }
+    to { transform: scale(1) rotate(360deg); }
+}
+
+.response-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.response-btn {
+    width: 150px;
+    height: 150px;
+    font-size: 24px;
+    border-radius: 15px;
+    border: 3px solid;
+    background: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.response-btn:hover {
+    transform: scale(1.05);
+}
+
+.response-btn:active {
+    transform: scale(0.95);
+}
+
+/* Reaction Game Specific */
+.reaction-area {
+    background: white;
+    padding: 100px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin: 30px 0;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reaction-area.waiting {
+    background: #ff5252;
+}
+
+.reaction-area.ready {
+    background: #4CAF50;
+}
+
+/* Puzzle Game Specific */
+.puzzle-board {
+    display: grid;
+    gap: 5px;
+    max-width: 400px;
+    margin: 30px auto;
+    background: #333;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.puzzle-tile {
+    aspect-ratio: 1;
+    background: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.puzzle-tile:hover {
+    background: #e3f2fd;
+}
+
+.puzzle-tile.empty {
+    background: #ddd;
+    cursor: default;
+}
+
+/* High Contrast Mode */
+.high-contrast .game-header h1 {
+    color: #00ff00;
+}
+
+.high-contrast .info-box {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+}
+
+.high-contrast .info-box .label {
+    color: #ccc;
+}
+
+.high-contrast .info-box .value {
+    color: #00ff00;
+}
+
+.high-contrast .instructions {
+    background: #003366;
+    border: 2px solid #00ffff;
+}
+
+.high-contrast .input-box {
+    background: #000;
+    color: #fff;
+    border-color: #00ff00;
+}
+
+.high-contrast .sequence-display,
+.high-contrast .target-display,
+.high-contrast .reaction-area {
+    background: #1a1a1a;
+    border: 3px solid #00ff00;
+}
+
+.high-contrast .response-btn {
+    background: #000;
+    color: #fff;
+}
+
+.high-contrast .puzzle-tile {
+    background: #1a1a1a;
+    color: #ffff00;
+    border: 2px solid #ffff00;
+}
+
+/* Visual Memory Game Styles */
+.memory-square {
+    aspect-ratio: 1;
+    background: #2a2a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #444;
+}
+
+.memory-square:hover {
+    background: #333;
+    transform: scale(1.05);
+}
+
+.memory-square.highlighted {
+    background: #4CAF50;
+    box-shadow: 0 0 20px #4CAF50;
+    animation: pulse 0.5s ease;
+}
+
+.memory-square.selected {
+    background: #2196F3;
+    border-color: #2196F3;
+}
+
+.memory-square.correct {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.memory-square.wrong {
+    background: #f44336;
+    border-color: #f44336;
+    animation: shake 0.3s ease;
+}
+
+.memory-square.show-correct {
+    background: #FFC107;
+    border-color: #FFC107;
+}
+
+/* Chimp Test Styles */
+.chimp-cell {
+    aspect-ratio: 1;
+    background: #2a2a2a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    border: 2px solid #444;
+    transition: all 0.2s ease;
+}
+
+.chimp-cell.has-number {
+    background: white;
+    color: #333;
+    cursor: pointer;
+}
+
+.chimp-cell.has-number:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.chimp-cell.hidden-number {
+    background: white;
+    cursor: pointer;
+}
+
+.chimp-cell.hidden-number:hover {
+    background: #f5f5f5;
+}
+
+.chimp-cell.correct-click {
+    background: #4CAF50;
+    color: white;
+    animation: correctPop 0.3s ease;
+}
+
+.chimp-cell.wrong-click {
+    background: #f44336;
+    color: white;
+    animation: shake 0.3s ease;
+}
+
+.chimp-cell.revealed {
+    background: #FFC107;
+    color: #333;
+}
+
+/* Typing Test Styles */
+.char {
+    color: #666;
+    font-size: 24px;
+}
+
+.char.correct {
+    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.char.incorrect {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+    text-decoration: underline wavy #f44336;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+@keyframes correctPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* High Contrast Mode for New Games */
+.high-contrast .memory-square,
+.high-contrast .chimp-cell {
+    border: 3px solid #00ff00;
+}
+
+.high-contrast .memory-square.highlighted,
+.high-contrast .chimp-cell.has-number {
+    background: #ffff00;
+    color: #000;
+}
+
+.high-contrast .char.correct {
+    color: #00ff00;
+    background: rgba(0, 255, 0, 0.2);
+}
+
+.high-contrast .char.incorrect {
+    color: #ff0000;
+    background: rgba(255, 0, 0, 0.2);
+}

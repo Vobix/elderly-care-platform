@@ -1,0 +1,98 @@
+/* Home Page Styles */
+
+.hero {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    margin-bottom: 50px;
+}
+
+.hero h1 {
+    font-size: 56px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-btn {
+    padding: 20px 40px;
+    font-size: 22px;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: bold;
+    transition: transform 0.3s;
+}
+
+.hero-btn:hover {
+    transform: translateY(-3px);
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin: 50px 0;
+}
+
+.feature-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.feature-card .icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    font-size: 24px;
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* High Contrast Mode */
+.high-contrast .hero {
+    background: #000;
+    border: 3px solid #ffff00;
+}
+
+.high-contrast .hero-btn {
+    background: #ffff00;
+    color: #000;
+}
+
+.high-contrast .feature-card {
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+}
+
+.high-contrast .feature-card h3 {
+    color: #ffff00;
+}
+
+.high-contrast .feature-card p {
+    color: #ccc;
+}
