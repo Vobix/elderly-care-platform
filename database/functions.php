@@ -132,6 +132,11 @@ function updateSettings($user_id, $high_contrast, $large_font, $voice_assistant,
 /**
  * Insert mood entry
  */
+/**
+ * Insert or update mood entry
+ * @implements C1: Mood Save Rule - entry_date must not be null, mood_value required (1-5)
+ * @implements C3: Optional Notes Rule - mood_text can be empty string, entry still saves
+ */
 function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '') {
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO mood_logs (user_id, entry_date, mood_value, mood_emoji, mood_text) VALUES (?, CURDATE(), ?, ?, ?) ON DUPLICATE KEY UPDATE mood_value = ?, mood_emoji = ?, mood_text = ?");
@@ -141,6 +146,10 @@ function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '') {
 
 /**
  * Get recent mood entries
+ */
+/**
+ * Get recent mood entries
+ * @implements C2: History Update Rule - ORDER BY entry_date DESC ensures newest entries display first
  */
 function getRecentMood($user_id, $limit = 10) {
     global $pdo;

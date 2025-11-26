@@ -2,6 +2,34 @@
 /**
  * Mood Tracking Page
  * Daily emotion logging with emoji scale
+ * 
+ * BASIC FLOW:
+ * BF:1 - User clicks mood on navigation bar
+ * BF:2 - System displays mood options [M1: Msg Select Mood]
+ * BF:3 - User selects one mood option
+ * BF:4 - System displays optional text box [M2: Msg Optional Notes]
+ * BF:5 - User enters notes (optional)
+ * BF:6 - User clicks Save Today's Mood
+ * BF:7 - System validates mood selection [A1: No Mood Selected]
+ * BF:8 - System saves mood entry [C1: Mood Save Rule]
+ * BF:9 - System updates Recent Mood History [C2: History Update Rule]
+ * BF:10 - System displays confirmation message [M3: Msg Mood Saved]
+ * 
+ * ALTERNATE FLOW:
+ * A1: No Mood Selected
+ * A1.1 - Display error [M4: Err No Mood Selected]
+ * A1.2 - Return to BF:2 without saving
+ * 
+ * Messages:
+ * M1: Please select your mood for today
+ * M2: Add your thoughts (optional)
+ * M3: Your mood has been recorded
+ * M4: Please select a mood before saving
+ * 
+ * Constraints:
+ * C1: Mood Save Rule - Entry must contain at least one selected mood
+ * C2: History Update Rule - New entry appears at top of history
+ * C3: Optional Notes Rule - Notes may be empty, entry still saves
  */
 
 $page_title = "Track Your Mood";
@@ -10,6 +38,13 @@ require_once __DIR__ . '/../../_header.php';
 require_once __DIR__ . '/../../database/functions.php';
 
 $user_id = $_SESSION['user_id'];
+
+// Messages
+$msg_select_mood = "Please select your mood for today";
+$msg_optional_notes = "Add your thoughts (optional)";
+$msg_mood_saved = "Your mood has been recorded";
+$msg_no_mood_selected = "Please select a mood before saving";
+
 $success = '';
 $error = '';
 
@@ -19,21 +54,25 @@ $stmt = $pdo->prepare("SELECT * FROM mood_logs WHERE user_id = ? AND entry_date 
 $stmt->execute([$user_id]);
 $today_mood = $stmt->fetch();
 
-// Handle form submission
+// Handle form submission (BF:6 - User clicks Save Today's Mood)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mood_value = $_POST['mood_level'] ?? 0;
-    $mood_text = sanitizeInput($_POST['notes'] ?? '');
+    $mood_text = sanitizeInput($_POST['notes'] ?? ''); // C3: Notes optional
     
     // Mood emojis mapping
     $emoji_map = [1 => '😢', 2 => '🙁', 3 => '😐', 4 => '🙂', 5 => '😄'];
     $mood_emoji = $emoji_map[$mood_value] ?? '';
     
+    // BF:7 / A1: Validate mood selection (C1: Mood Save Rule)
     if ($mood_value >= 1 && $mood_value <= 5) {
         try {
+            // BF:8: Save mood entry (C1: Must contain selected mood)
             insertMood($user_id, $mood_value, $mood_emoji, $mood_text);
-            $success = $today_mood ? "Your mood has been updated successfully! 🎉" : "Your mood has been logged successfully! 🎉";
             
-            // Refresh to show today's mood
+            // BF:10: Display confirmation (M3: Msg Mood Saved)
+            $success = $msg_mood_saved;
+            
+            // BF:9 / C2: Refresh to update history (new entry at top)
             $stmt->execute([$user_id]);
             $today_mood = $stmt->fetch();
         } catch (Exception $e) {
@@ -41,7 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Mood insert error: " . $e->getMessage());
         }
     } else {
-        $error = "Please select a valid mood level.";
+        // A1.1: No mood selected - display error (M4: Err No Mood Selected)
+        $error = $msg_no_mood_selected;
+        // A1.2: Returns to BF:2 without saving (form redisplays below)
     }
 }
 
@@ -64,16 +105,19 @@ require_once __DIR__ . '/../../_header.php';
 
 <div class="mood-container">
     <h1 style="text-align: center; font-size: 42px; margin-bottom: 10px;">😊 How are you feeling today?</h1>
+    <!-- M1: Msg Select Mood (BF:2) -->
     <p style="text-align: center; font-size: 18px; color: #666; margin-bottom: 30px;">
-        Track your emotional wellness daily
+        <?php echo $msg_select_mood; ?>
     </p>
     
+    <!-- BF:10: Success message (M3: Msg Mood Saved) -->
     <?php if ($success): ?>
-        <div class="alert alert-success"><?php echo $success; ?></div>
+        <div class="alert alert-success">✅ <?php echo $success; ?></div>
     <?php endif; ?>
     
+    <!-- A1.1: Error message (M4: Err No Mood Selected) -->
     <?php if ($error): ?>
-        <div class="alert alert-error"><?php echo $error; ?></div>
+        <div class="alert alert-error">❌ <?php echo $error; ?></div>
     <?php endif; ?>
     
     <?php if ($today_mood): ?>
@@ -94,6 +138,7 @@ require_once __DIR__ . '/../../_header.php';
             <form method="POST" action="">
                 <h2 style="margin-bottom: 20px; text-align: center;">Select Your Mood</h2>
                 
+                <!-- BF:3: User selects one of 5 mood levels -->
                 <div class="mood-scale">
                     <?php foreach ($mood_data as $level => $data): ?>
                         <div class="mood-option">
@@ -106,8 +151,10 @@ require_once __DIR__ . '/../../_header.php';
                     <?php endforeach; ?>
                 </div>
                 
+                <!-- BF:4: User adds optional notes -->
                 <div class="notes-area">
-                    <label for="notes">💭 How are you feeling? (Optional)</label>
+                    <!-- M2: Msg Optional Notes -->
+                    <label for="notes">💭 <?php echo $msg_optional_notes; ?></label>
                     <textarea id="notes" name="notes" placeholder="Share your thoughts, what made you feel this way, or anything on your mind..."></textarea>
                 </div>
                 
@@ -116,6 +163,8 @@ require_once __DIR__ . '/../../_header.php';
         </div>
     <?php endif; ?>
     
+    <!-- BF:9: System displays Recent Mood History (newest first) -->
+    <!-- C2: History Update Rule - Display newest entry at top (ORDER BY entry_date DESC) -->
     <?php if (!empty($recent_moods)): ?>
         <div class="recent-moods">
             <h3>📅 Recent Mood History</h3>
