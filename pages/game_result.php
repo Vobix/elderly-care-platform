@@ -2,6 +2,17 @@
 /**
  * Game Result Page
  * Saves game results and displays summary
+ * 
+ * Messages:
+ * M3: Game complete! Your score has been saved.
+ * M4: Your game statistics have been updated.
+ * 
+ * Constraints:
+ * C1: Auto Save Rule - Game score must be automatically saved immediately after game ends
+ * C3: Stats Update Formula:
+ *     - Times Played = Times Played + 1
+ *     - If Score > Best Score -> Best Score = Score
+ *     - Average Score = Total Score / Times Played
  */
 
 $page_title = "Game Results";
@@ -11,6 +22,11 @@ require_once __DIR__ . '/../database/functions.php';
 
 $user_id = $_SESSION['user_id'];
 
+// M3: Game completion message
+$msg_game_complete = "Game complete! Your score has been saved.";
+// M4: Stats update message
+$msg_stats_updated = "Your game statistics have been updated.";
+
 // Get game data from POST
 $game_type = $_POST['game_type'] ?? $_GET['game'] ?? '';
 $score = $_POST['score'] ?? 0;
@@ -19,7 +35,7 @@ $difficulty = $_POST['difficulty'] ?? 'medium';
 $attempts = $_POST['attempts'] ?? 0;
 $accuracy = $_POST['accuracy'] ?? 0;
 
-// Validate and save to database
+// C1: Auto Save Rule - Validate and save to database immediately
 if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Prepare additional details as JSON
@@ -29,8 +45,16 @@ if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
             'score' => $score
         ]);
         
+        // C1: Automatic save immediately after game ends
         $session_id = insertGameSession($user_id, $game_type, $score, $duration, $difficulty, $details);
         $saved = true;
+        
+        // C3: Stats Update Formula - Update user statistics
+        // This is handled automatically by the database triggers/functions
+        // Times Played = Times Played + 1
+        // If Score > Best Score -> Best Score = Score
+        // Average Score = Total Score / Times Played
+        
     } catch (Exception $e) {
         error_log("Game save error: " . $e->getMessage());
         $saved = false;
@@ -73,7 +97,10 @@ require_once __DIR__ . '/../_header.php';
 <div class="result-container">
     <?php if ($saved): ?>
         <div class="alert alert-success">
-            ✅ Your game results have been saved!
+            ✅ <?php echo $msg_game_complete; ?>
+        </div>
+        <div class="alert alert-info" style="margin-top: 10px;">
+            📊 <?php echo $msg_stats_updated; ?>
         </div>
     <?php endif; ?>
     

@@ -190,6 +190,13 @@ function getGameId($game_type) {
 
 /**
  * Insert game session with score
+ * 
+ * Constraints:
+ * C1: Auto Save Rule - Automatically saves game score immediately
+ * C3: Stats Update Formula:
+ *     - Times Played = Times Played + 1 (automatic via INSERT)
+ *     - If Score > Best Score -> Best Score = Score (calculated in getUserGameStats)
+ *     - Average Score = Total Score / Times Played (calculated in getUserGameStats)
  */
 function insertGameSession($user_id, $game_type, $score, $duration, $difficulty = 'medium', $details = null) {
     global $pdo;
@@ -206,27 +213,40 @@ function insertGameSession($user_id, $game_type, $score, $duration, $difficulty 
         $avg_reaction_ms = isset($details_arr['reaction_time']) ? round($details_arr['reaction_time']) : null;
     }
     
-    // Insert game session
+    // C1: Auto Save - Insert game session immediately
     $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND))");
     $stmt->execute([$user_id, $game_id, $difficulty, $duration]);
     $session_id = $pdo->lastInsertId();
     
-    // Insert game score
+    // C1: Auto Save - Insert game score immediately
     $stmt = $pdo->prepare("INSERT INTO game_scores (session_id, score, accuracy, avg_reaction_ms) VALUES (?, ?, ?, ?)");
     $stmt->execute([$session_id, $score, $accuracy, $avg_reaction_ms]);
+    
+    // C3: Statistics automatically updated by this insert
+    // - Times Played incremented (new row added)
+    // - Best Score and Average Score recalculated on next query
     
     return $session_id;
 }
 
 /**
  * Get user game statistics
+ * 
+ * Constraints:
+ * C3: Stats Update Formula implementation:
+ *     - Times Played = COUNT(*) = Times Played + 1 with each new session
+ *     - Best Score = MAX(score) = highest score achieved
+ *     - Average Score = AVG(score) = Total Score / Times Played
  */
 function getUserGameStats($user_id, $game_type = null) {
     global $pdo;
     if ($game_type) {
+        // C3: Calculate statistics using formula
         $stmt = $pdo->prepare("
-            SELECT g.code as game_type, COUNT(*) as games_played, 
-                   AVG(gsc.score) as avg_score, MAX(gsc.score) as best_score, 
+            SELECT g.code as game_type, 
+                   COUNT(*) as games_played,                    -- Times Played
+                   AVG(gsc.score) as avg_score,                 -- Average Score = Total / Times Played
+                   MAX(gsc.score) as best_score,                -- Best Score = Maximum score
                    SUM(TIMESTAMPDIFF(SECOND, gs.started_at, gs.ended_at)) as total_time 
             FROM game_sessions gs
             JOIN games g ON gs.game_id = g.game_id

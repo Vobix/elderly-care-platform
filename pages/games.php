@@ -2,6 +2,13 @@
 /**
  * Games Menu Page
  * Lists all available cognitive games with difficulty selection
+ * 
+ * Messages:
+ * M1: Please choose a game to play
+ * 
+ * Constraints:
+ * C2: Allowed Difficulty Levels = {Easy, Medium, Hard}
+ * C4: Valid Game Launch Actions = Difficulty button OR Play Now button
  */
 
 $page_title = "Cognitive Games";
@@ -10,6 +17,9 @@ require_once __DIR__ . '/../_header.php';
 require_once __DIR__ . '/../database/functions.php';
 
 $user_id = $_SESSION['user_id'];
+
+// M1: Message for game selection
+$msg_game_list = "Please choose a game to play";
 
 // Get user's game statistics
 $game_stats = getUserGameStats($user_id);
@@ -93,7 +103,7 @@ require_once __DIR__ . '/../_header.php';
 
 <div class="games-header">
     <h1>🎮 Cognitive Training Games</h1>
-    <p style="font-size: 18px; color: #666;">Choose a game to exercise your mind and track your progress</p>
+    <p style="font-size: 18px; color: #666;"><?php echo $msg_game_list; ?></p>
 </div>
 
 <div class="games-grid">
