@@ -10,8 +10,10 @@
  * - PSS-4 (Perceived Stress Scale)
  * - PSQI (Pittsburgh Sleep Quality Index)
  * 
- * Phase 1: Basic scoring (will be enhanced with Strategy Pattern in Phase 2)
+ * Phase 2: Enhanced with Strategy Pattern for validated clinical scoring
  */
+
+require_once __DIR__ . '/strategies/ScoringStrategyFactory.php';
 
 class QuestionnaireService {
     private $pdo;
@@ -33,19 +35,31 @@ class QuestionnaireService {
     /**
      * Score a questionnaire and save results
      * 
+     * Uses Strategy Pattern - delegates to appropriate scoring strategy
+     * based on questionnaire type (WHO-5, GDS-15, PHQ-9, etc.)
+     * 
      * @param int $userId User ID
      * @param string $questionnaireType Type of questionnaire
      * @param array $responses User's responses
-     * @param string $format Response format (yes_no, frequency, scale)
+     * @param string $format Response format (deprecated - kept for compatibility)
      * @return array ['success' => bool, 'score' => int, 'interpretation' => array, 'response_id' => int]
      */
     public function scoreQuestionnaire($userId, $questionnaireType, $responses, $format = 'scale') {
         try {
-            // Calculate score based on questionnaire type
-            $score = $this->calculateScore($questionnaireType, $responses, $format);
+            // Phase 2: Use Strategy Pattern for validated clinical scoring
+            $strategy = ScoringStrategyFactory::create($questionnaireType);
             
-            // Get interpretation
-            $interpretation = $this->interpretScore($questionnaireType, $score, count($responses), $format);
+            // Calculate score using validated algorithm
+            $score = $strategy->calculateScore($responses);
+            
+            // Get clinical interpretation
+            $interpretation = $strategy->interpret($score);
+            
+            // Add additional metadata
+            $interpretation['max_score'] = $strategy->getMaxScore();
+            $interpretation['percentage'] = round(($score / $strategy->getMaxScore()) * 100);
+            $interpretation['questionnaire_name'] = $strategy->getName();
+            $interpretation['reference'] = $strategy->getReference();
             
             // Save to database
             $responseId = $this->saveResult($userId, $questionnaireType, $responses, $score);
@@ -69,6 +83,16 @@ class QuestionnaireService {
     }
     
     /**
+     * Phase 2: Old methods removed - now using Strategy Pattern
+     * - calculateScore() → Replaced by Strategy::calculateScore()
+     * - interpretScore() → Replaced by Strategy::interpret()
+     * - getMaxScore() → Replaced by Strategy::getMaxScore()
+     * 
+     * All clinical scoring logic now in validated strategy classes
+     */
+    
+    /**
+     * [DEPRECATED - Phase 1 method, kept for reference]
      * Calculate score based on questionnaire type
      * 
      * @param string $type Questionnaire type
@@ -76,7 +100,7 @@ class QuestionnaireService {
      * @param string $format Response format
      * @return int Total score
      */
-    private function calculateScore($type, $responses, $format) {
+    private function calculateScore_OLD($type, $responses, $format) {
         $score = 0;
         
         // Different scoring methods based on type
@@ -110,6 +134,7 @@ class QuestionnaireService {
     }
     
     /**
+     * [DEPRECATED - Phase 1 method, kept for reference]
      * Interpret score based on clinical thresholds
      * 
      * @param string $type Questionnaire type
@@ -118,9 +143,9 @@ class QuestionnaireService {
      * @param string $format Response format
      * @return array Interpretation details
      */
-    private function interpretScore($type, $score, $numQuestions, $format) {
+    private function interpretScore_OLD($type, $score, $numQuestions, $format) {
         // Calculate percentage for general reference
-        $maxScore = $this->getMaxScore($type, $numQuestions, $format);
+        $maxScore = $this->getMaxScore_OLD($type, $numQuestions, $format);
         $percentage = $maxScore > 0 ? ($score / $maxScore) * 100 : 0;
         
         // Type-specific interpretations with clinical thresholds
@@ -323,6 +348,7 @@ class QuestionnaireService {
     }
     
     /**
+     * [DEPRECATED - Phase 1 method, kept for reference]
      * Get maximum possible score
      * 
      * @param string $type Questionnaire type
@@ -330,7 +356,7 @@ class QuestionnaireService {
      * @param string $format Response format
      * @return int Maximum score
      */
-    private function getMaxScore($type, $numQuestions, $format) {
+    private function getMaxScore_OLD($type, $numQuestions, $format) {
         switch ($format) {
             case 'yes_no':
                 return $numQuestions; // 0-1 per question
