@@ -1,0 +1,810 @@
+================================================================================
+ARCHITECTURE REFACTORING IMPLEMENTATION PLAN
+================================================================================
+Project: Elderly Care Platform
+Date: November 29, 2025
+Target Architecture: Layered MVC with Service Layer + Strategy Pattern + DAOs
+Current State: Procedural PHP with mixed concerns
+================================================================================
+
+OVERVIEW
+========
+Transform current procedural codebase into maintainable, testable architecture
+while keeping ALL existing pages, CSS, JS, and games unchanged.
+
+Goal: Centralize business logic, enforce constraints, enable testing.
+
+================================================================================
+PHASE 1: SERVICE LAYER IMPLEMENTATION
+================================================================================
+Priority: CRITICAL
+Benefit: 80% of constraint enforcement centralized
+Effort: Medium (3-4 files to create, 3-4 files to modify)
+
+FILES TO CREATE
+---------------
+
+1. services/GameService.php
+   Purpose: Enforce game constraints C1-C4
+   Methods:
+   - completeGame($userId, $gameCode, $difficulty, $score, $details)
+     * C1: Auto Save Rule (transaction)
+     * C3: Stats Update Formula (exact formula)
+     * C4: Valid Game Launch Action
+   - validateGameLaunch($gameCode, $difficulty)
+     * C2: Allowed Difficulty Levels validation
+     * C4: Difficulty button OR Play Now button
+   - getStats($userId, $gameCode)
+   - getRecentSessions($userId, $limit)
+   
+   Enforces:
+   - C1: Auto Save Rule - Every game completion MUST save immediately
+   - C2: Allowed Difficulty Levels {Easy, Medium, Hard}
+   - C3: Stats Update Formula:
+     * Times Played = Times Played + 1
+     * If Score > Best Score → Best Score = Score
+     * Average Score = Total Score / Times Played
+   - C4: Valid Game Launch Actions (Difficulty button OR Play Now)
+   
+   Messages:
+   - M3: "Game complete! Your score has been saved."
+   - M4: "Your game statistics have been updated."
+   - M5: "Unable to load the game. Please try again later."
+
+2. services/MoodService.php
+   Purpose: Enforce mood tracking BF/AF flows and constraints C1-C3
+   Methods:
+   - recordMood($userId, $moodValue, $notes)
+     * BF:6-10 flow enforcement
+     * A1: No Mood Selected validation
+     * C1: Mood Save Rule
+     * C3: Optional Notes Rule
+   - getRecentHistory($userId, $days)
+     * C2: History Update Rule (newest first)
+   - getTodaysMood($userId)
+   - getMoodStats($userId, $days)
+   
+   Enforces:
+   - C1: Mood Save Rule - Entry must contain entry_date + mood_value (1-5)
+   - C2: History Update Rule - Display newest entries first (ORDER BY DESC)
+   - C3: Optional Notes Rule - mood_text optional, entry saves with empty notes
+   
+   Messages:
+   - M1: "Please select your mood for today"
+   - M2: "Add your thoughts (optional)"
+   - M3: "Your mood has been saved successfully for today!"
+   - M4: "Please select a mood level before saving"
+   
+   Flow Steps:
+   - BF:1-10 (Basic Flow - complete mood tracking journey)
+   - A1.1-A1.2 (Alternate Flow - no mood selected error)
+
+3. services/QuestionnaireService.php
+   Purpose: Orchestrate questionnaire scoring (uses strategies in Phase 2)
+   Methods:
+   - scoreQuestionnaire($userId, $questionnaireType, $responses)
+     * Delegates to appropriate strategy
+     * Saves result to database
+     * Returns score + interpretation
+   - getResults($userId, $questionnaireType)
+   - getLatestResult($userId, $questionnaireType)
+   - getAllResults($userId)
+   
+   Questionnaire Types:
+   - wellbeing (WHO-5)
+   - depression (GDS-15)
+   - mood (PHQ-9)
+   - anxiety (GAD-7)
+   - stress (PSS-4)
+   - sleep (PSQI)
+
+4. services/UserService.php (Optional - auth logic)
+   Purpose: Centralize authentication and user management
+   Methods:
+   - login($email, $password)
+   - register($email, $password)
+   - logout()
+   - updateProfile($userId, $data)
+   - updateSettings($userId, $settings)
+   - getProfile($userId)
+   - getSettings($userId)
+
+FILES TO MODIFY
+---------------
+
+1. pages/game_result.php
+   BEFORE (lines 30-80):
+   - Direct PDO queries
+   - Stats calculation inline
+   - Constraint logic scattered
+   
+   AFTER:
+   - require_once '../services/GameService.php';
+   - $gameService = new GameService($pdo);
+   - $result = $gameService->completeGame(...);
+   - Display M3, M4 messages
+   
+   Changes:
+   - Remove insertGameSession() call
+   - Remove insertGameScore() call
+   - Remove stats update logic
+   - Replace with single $gameService->completeGame() call
+
+2. pages/emotion/mood.php
+   BEFORE (lines 38-57):
+   - Manual validation
+   - Direct insertMood() call
+   - Generic messages
+   
+   AFTER:
+   - require_once '../../services/MoodService.php';
+   - $moodService = new MoodService($pdo);
+   - $result = $moodService->recordMood(...);
+   - Display M1-M4 messages based on result
+   
+   Changes:
+   - Replace validation with service call
+   - Use M1-M4 constants from service
+   - Remove direct insertMood() call
+   - Use $result['success'] and $result['message']
+
+3. pages/emotion/questionnaire_result.php
+   BEFORE (lines 13-80):
+   - Giant if/elseif blocks for each questionnaire type
+   - Scoring logic duplicated
+   - Interpretation hardcoded
+   
+   AFTER:
+   - require_once '../../services/QuestionnaireService.php';
+   - $questionnaireService = new QuestionnaireService($pdo);
+   - $result = $questionnaireService->scoreQuestionnaire(...);
+   - Display $result['score'], $result['interpretation']
+   
+   Changes:
+   - Remove all if/elseif blocks
+   - Remove manual score calculation
+   - Replace with single service call
+   - Use returned interpretation array
+
+TESTING PHASE 1
+----------------
+After implementing Phase 1, test:
+1. Game completion saves correctly (C1, C3)
+2. Stats update with exact formula (C3)
+3. Mood recording with/without notes (C1, C3)
+4. Mood history newest first (C2)
+5. Error messages display correctly (M4, M5)
+6. Success messages display correctly (M3)
+
+================================================================================
+PHASE 2: STRATEGY PATTERN FOR QUESTIONNAIRE SCORING
+================================================================================
+Priority: HIGH
+Benefit: Maintainable, testable clinical scoring algorithms
+Effort: Low (8 files to create, 1 file to modify)
+
+FILES TO CREATE
+---------------
+
+1. services/strategies/ScoringStrategy.php (Interface)
+   Methods:
+   - calculateScore(array $responses): int
+   - interpret(int $score): array
+   - getMaxScore(): int
+   - getName(): string
+   
+   Return format for interpret():
+   [
+     'level' => 'mild|moderate|severe',
+     'color' => 'success|warning|danger',
+     'message' => 'User-friendly interpretation',
+     'recommendation' => 'What user should do'
+   ]
+
+2. services/strategies/GDS15Strategy.php
+   Name: "Geriatric Depression Scale (GDS-15)"
+   Scoring: Count "yes" answers (0-15)
+   Interpretation:
+   - 0-4: Normal (no depression)
+   - 5-9: Mild depression
+   - 10-15: Moderate to severe depression
+   
+   Clinical validation: Validated for elderly population
+   Reference: Yesavage et al., 1982
+
+3. services/strategies/PHQ9Strategy.php
+   Name: "Patient Health Questionnaire (PHQ-9)"
+   Scoring: Sum frequency values 0-3 per question (0-27 total)
+   Interpretation:
+   - 0-4: Minimal or no depression
+   - 5-9: Mild depression
+   - 10-14: Moderate depression
+   - 15-19: Moderately severe depression
+   - 20-27: Severe depression
+   
+   Clinical validation: Primary care depression screening
+   Reference: Kroenke et al., 2001
+
+4. services/strategies/GAD7Strategy.php
+   Name: "Generalized Anxiety Disorder Scale (GAD-7)"
+   Scoring: Sum frequency values 0-3 per question (0-21 total)
+   Interpretation:
+   - 0-4: Minimal anxiety
+   - 5-9: Mild anxiety
+   - 10-14: Moderate anxiety
+   - 15-21: Severe anxiety
+   
+   Clinical validation: Anxiety disorder screening
+   Reference: Spitzer et al., 2006
+
+5. services/strategies/WHO5Strategy.php
+   Name: "WHO-5 Well-Being Index"
+   Scoring: Sum values 0-5 per question × 4 (0-100 scale)
+   Interpretation:
+   - 50-100: Good well-being
+   - 28-49: Low well-being
+   - 0-27: Poor well-being (screen for depression)
+   
+   Clinical validation: WHO well-being assessment
+   Reference: WHO, 1998
+
+6. services/strategies/PSS4Strategy.php
+   Name: "Perceived Stress Scale (PSS-4)"
+   Scoring: Sum values 0-4 per question (0-16 total)
+   Interpretation:
+   - 0-5: Low stress
+   - 6-10: Moderate stress
+   - 11-16: High stress
+   
+   Clinical validation: Brief stress assessment
+   Reference: Cohen et al., 1983
+
+7. services/strategies/PSQIStrategy.php
+   Name: "Pittsburgh Sleep Quality Index"
+   Scoring: Component scores 0-3, sum components (0-21 total)
+   Interpretation:
+   - 0-5: Good sleep quality
+   - 6-10: Poor sleep quality
+   - 11-21: Severe sleep disturbance
+   
+   Clinical validation: Sleep quality assessment
+   Reference: Buysse et al., 1989
+
+8. services/strategies/ScoringStrategyFactory.php
+   Purpose: Create appropriate strategy based on questionnaire type
+   Method:
+   - create(string $questionnaireType): ScoringStrategy
+   
+   Mapping:
+   - 'wellbeing' → WHO5Strategy
+   - 'depression' → GDS15Strategy
+   - 'mood' → PHQ9Strategy
+   - 'anxiety' → GAD7Strategy
+   - 'stress' → PSS4Strategy
+   - 'sleep' → PSQIStrategy
+
+FILES TO MODIFY
+---------------
+
+1. services/QuestionnaireService.php
+   Changes:
+   - Add use statements for all strategies
+   - Initialize strategy factory in constructor
+   - Replace manual scoring with strategy->calculateScore()
+   - Replace interpretation logic with strategy->interpret()
+   
+   BEFORE:
+   if ($type === 'wellbeing') {
+     // Calculate...
+     // Interpret...
+   } elseif ($type === 'depression') {
+     // Different calculation...
+   }
+   
+   AFTER:
+   $strategy = $this->strategyFactory->create($type);
+   $score = $strategy->calculateScore($responses);
+   $interpretation = $strategy->interpret($score);
+
+TESTING PHASE 2
+----------------
+After implementing Phase 2, test:
+1. Each questionnaire type scores correctly
+2. Interpretations match clinical thresholds
+3. All 6 questionnaire types work
+4. Edge cases (all zeros, all max values)
+5. Invalid questionnaire type throws exception
+
+================================================================================
+PHASE 3: DATA ACCESS OBJECTS (DAOs)
+================================================================================
+Priority: MEDIUM
+Benefit: Clean separation of data access, easier testing
+Effort: Medium (4 files to create, 5 files to modify, 1 file to refactor)
+
+FILES TO CREATE
+---------------
+
+1. database/dao/GameDAO.php
+   Purpose: All game-related database operations
+   Methods:
+   - getGameByCode($code): array|false
+   - getGameById($gameId): array|false
+   - createGame($name, $code, $description): int
+   - getAllGames(): array
+   - saveSession($userId, $gameId, $difficulty, $startedAt, $endedAt): int
+   - saveScore($sessionId, $score, $maxScore, $accuracy, $avgReactionMs, $levelReached): int
+   - getStats($userId, $gameId): array|false
+   - updateStats($userId, $gameId, $timesPlayed, $bestScore, $totalScore, $avgScore): bool
+   - getRecentSessions($userId, $limit = 10): array
+   - getAllStats($userId): array
+   
+   Database Tables:
+   - games
+   - game_sessions
+   - game_scores
+   - user_game_stats
+
+2. database/dao/MoodDAO.php
+   Purpose: All mood-related database operations
+   Methods:
+   - saveMood($userId, $moodValue, $moodEmoji, $moodText): bool
+   - getTodaysMood($userId): array|false
+   - getHistory($userId, $days = 7): array
+   - getMoodStats($userId, $days = 30): array|false
+   - getAverageMood($userId, $days = 7): float|null
+   - getMoodTrend($userId, $days = 30): array
+   - deleteMood($moodLogId): bool (for undo functionality)
+   
+   Database Tables:
+   - mood_logs
+
+3. database/dao/QuestionnaireDAO.php
+   Purpose: All questionnaire-related database operations
+   Methods:
+   - getQuestionnaireById($questionnaireId): array|false
+   - getQuestionnaireByCode($shortCode): array|false
+   - getAllQuestionnaires(): array
+   - saveResult($userId, $questionnaireId, $responses, $score): int
+   - getResults($userId, $questionnaireType = null): array
+   - getLatestResult($userId, $questionnaireType): array|false
+   - getResultById($responseId): array|false
+   - getResultStats($userId, $questionnaireType, $days = 30): array
+   
+   Database Tables:
+   - questionnaires
+   - questionnaire_responses
+
+4. database/dao/UserDAO.php
+   Purpose: All user-related database operations
+   Methods:
+   - getUserById($userId): array|false
+   - getUserByEmail($email): array|false
+   - createUser($email, $passwordHash): int
+   - updateUser($userId, $data): bool
+   - deleteUser($userId): bool
+   - getProfile($userId): array|false
+   - updateProfile($userId, $data): bool
+   - getSettings($userId): array|false
+   - updateSettings($userId, $settings): bool
+   - verifyPassword($userId, $password): bool
+   
+   Database Tables:
+   - users
+   - profiles
+   - user_settings
+
+FILES TO MODIFY
+---------------
+
+1. services/GameService.php
+   Changes:
+   - Add private $gameDAO property
+   - Accept GameDAO in constructor
+   - Replace all direct PDO queries with DAO method calls
+   
+   BEFORE:
+   private $pdo;
+   public function __construct($pdo) {...}
+   $stmt = $this->pdo->prepare("SELECT...");
+   
+   AFTER:
+   private $gameDAO;
+   public function __construct(GameDAO $gameDAO) {...}
+   $game = $this->gameDAO->getGameByCode($code);
+
+2. services/MoodService.php
+   Changes:
+   - Add private $moodDAO property
+   - Accept MoodDAO in constructor
+   - Replace all direct PDO queries with DAO method calls
+   
+   BEFORE:
+   private $pdo;
+   $stmt = $this->pdo->prepare("INSERT INTO mood_logs...");
+   
+   AFTER:
+   private $moodDAO;
+   $result = $this->moodDAO->saveMood($userId, $moodValue, ...);
+
+3. services/QuestionnaireService.php
+   Changes:
+   - Add private $questionnaireDAO property
+   - Accept QuestionnaireDAO in constructor
+   - Replace all direct PDO queries with DAO method calls
+   
+   BEFORE:
+   private $pdo;
+   $stmt = $this->pdo->prepare("INSERT INTO questionnaire_responses...");
+   
+   AFTER:
+   private $questionnaireDAO;
+   $this->questionnaireDAO->saveResult($userId, $questionnaireId, ...);
+
+4. services/UserService.php
+   Changes:
+   - Add private $userDAO property
+   - Accept UserDAO in constructor
+   - Replace all direct PDO queries with DAO method calls
+
+5. All page files that instantiate services
+   Changes:
+   - Create DAO instances
+   - Pass DAOs to service constructors
+   
+   BEFORE:
+   $gameService = new GameService($pdo);
+   
+   AFTER:
+   require_once '../database/dao/GameDAO.php';
+   $gameDAO = new GameDAO($pdo);
+   $gameService = new GameService($gameDAO);
+
+FILES TO REFACTOR
+-----------------
+
+1. database/functions.php
+   Keep ONLY utility functions that don't fit in DAOs:
+   - getConnection() (if not in config.php)
+   - sanitizeInput()
+   - formatDate()
+   - Any helper functions used across multiple DAOs
+   
+   Remove:
+   - All insertGameSession, insertGameScore functions → GameDAO
+   - All insertMood, getRecentMood functions → MoodDAO
+   - All insertQuestionnaireResult functions → QuestionnaireDAO
+   - All user-related functions → UserDAO
+   
+   Expected reduction: ~500+ lines removed, moved to specific DAOs
+
+TESTING PHASE 3
+----------------
+After implementing Phase 3, test:
+1. All game functionality still works
+2. All mood tracking still works
+3. All questionnaire functionality still works
+4. All dashboard stats display correctly
+5. No broken database queries
+6. Performance is similar or better
+
+================================================================================
+IMPLEMENTATION ORDER
+================================================================================
+
+STEP 1: Create services/ folder structure
+------------------------------------------
+mkdir services
+mkdir services/strategies
+
+STEP 2: Implement Phase 1 - Service Layer
+------------------------------------------
+1. Create services/GameService.php
+   - Implement completeGame() with C1, C3, C4
+   - Implement validateGameLaunch() with C2, C4
+   - Test manually
+   
+2. Create services/MoodService.php
+   - Implement recordMood() with BF/AF, C1-C3
+   - Implement getRecentHistory() with C2
+   - Test manually
+   
+3. Create services/QuestionnaireService.php (basic version)
+   - Implement scoreQuestionnaire() (basic, no strategies yet)
+   - Implement getResults()
+   - Test manually
+   
+4. Modify pages/game_result.php to use GameService
+   - Test game completion
+   
+5. Modify pages/emotion/mood.php to use MoodService
+   - Test mood recording
+   
+6. Modify pages/emotion/questionnaire_result.php to use QuestionnaireService
+   - Test questionnaire scoring (basic)
+
+7. TEST Phase 1 completely before moving to Phase 2
+
+STEP 3: Implement Phase 2 - Strategy Pattern
+---------------------------------------------
+1. Create services/strategies/ScoringStrategy.php (interface)
+   
+2. Create all 6 strategy implementations:
+   - GDS15Strategy.php
+   - PHQ9Strategy.php
+   - GAD7Strategy.php
+   - WHO5Strategy.php
+   - PSS4Strategy.php
+   - PSQIStrategy.php
+   
+3. Create services/strategies/ScoringStrategyFactory.php
+   
+4. Modify services/QuestionnaireService.php to use strategies
+   - Replace manual scoring with strategy pattern
+   
+5. TEST Phase 2 completely before moving to Phase 3
+
+STEP 4: Implement Phase 3 - DAOs
+---------------------------------
+1. Create database/dao/ folder
+   mkdir database/dao
+   
+2. Create all 4 DAO classes:
+   - GameDAO.php
+   - MoodDAO.php
+   - QuestionnaireDAO.php
+   - UserDAO.php
+   
+3. Modify services to use DAOs:
+   - GameService.php → use GameDAO
+   - MoodService.php → use MoodDAO
+   - QuestionnaireService.php → use QuestionnaireDAO
+   - UserService.php → use UserDAO
+   
+4. Modify all page files to instantiate DAOs and pass to services
+   
+5. Refactor database/functions.php
+   - Remove functions moved to DAOs
+   - Keep only utility functions
+   
+6. TEST Phase 3 completely
+
+STEP 5: Final Testing & Documentation
+--------------------------------------
+1. Run full system test:
+   - Login/Register
+   - Play all 8 games
+   - Record mood entries
+   - Complete all 6 questionnaire types
+   - View dashboard
+   - View reports
+   - Update profile/settings
+   
+2. Verify constraints:
+   - C1: Auto Save Rule works
+   - C2: Allowed Difficulty Levels enforced
+   - C3: Stats Update Formula exact
+   - C4: Valid Game Launch Actions only
+   - C1 (Mood): Mood Save Rule enforced
+   - C2 (Mood): History Update Rule (newest first)
+   - C3 (Mood): Optional Notes Rule works
+   
+3. Verify messages:
+   - M1-M5 (Game messages)
+   - M1-M4 (Mood messages)
+   
+4. Verify flows:
+   - BF:1-10 (Mood Basic Flow)
+   - A1 (Mood Alternate Flow)
+   
+5. Update documentation:
+   - Update CONSTRAINTS_DOCUMENTATION.md if needed
+   - Update MOOD_TRACKING_FLOW.md if needed
+   - Create ARCHITECTURE_DOCUMENTATION.md describing new structure
+   
+6. Git commit:
+   git add .
+   git commit -m "Refactor: Implement Service Layer + Strategy Pattern + DAOs
+
+   Phase 1: Service Layer
+   - Added GameService (enforces C1-C4)
+   - Added MoodService (enforces BF/AF, C1-C3)
+   - Added QuestionnaireService (orchestrates scoring)
+   
+   Phase 2: Strategy Pattern
+   - Added ScoringStrategy interface
+   - Added 6 clinical scoring strategies (GDS-15, PHQ-9, GAD-7, WHO-5, PSS-4, PSQI)
+   - Replaced manual scoring with validated strategies
+   
+   Phase 3: Data Access Objects
+   - Added GameDAO, MoodDAO, QuestionnaireDAO, UserDAO
+   - Separated data access from business logic
+   - Refactored database/functions.php
+   
+   Benefits:
+   - Centralized constraint enforcement
+   - Testable business logic
+   - Maintainable clinical scoring
+   - Clean separation of concerns
+   - Foundation for unit testing"
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+Phase 1 Success:
+✓ All game constraints (C1-C4) enforced in GameService
+✓ All mood constraints (C1-C3) enforced in MoodService
+✓ All mood flows (BF/AF) enforced in MoodService
+✓ All messages (M1-M5) displayed correctly
+✓ Game completion works exactly as before (user perspective)
+✓ Mood recording works exactly as before (user perspective)
+✓ Questionnaire scoring works (basic version)
+
+Phase 2 Success:
+✓ All 6 questionnaire types have dedicated strategies
+✓ Each strategy implements clinical thresholds correctly
+✓ Scoring is consistent and validated
+✓ Interpretations match clinical guidelines
+✓ Easy to add new questionnaire types
+✓ QuestionnaireService uses strategies correctly
+
+Phase 3 Success:
+✓ All database operations moved to DAOs
+✓ Services only contain business logic
+✓ DAOs only contain SQL queries
+✓ database/functions.php reduced to utility functions only
+✓ Clean dependency injection (DAOs → Services → Pages)
+✓ All existing functionality works identically
+✓ Performance is maintained or improved
+
+Overall Success:
+✓ No user-facing changes (same UI/UX)
+✓ All features work exactly as before
+✓ Code is maintainable and testable
+✓ Constraints are guaranteed to be enforced
+✓ Business logic is centralized
+✓ Foundation for future unit testing
+✓ Regulatory/audit-ready architecture
+
+================================================================================
+ROLLBACK PLAN
+================================================================================
+
+If something goes wrong at any phase:
+
+1. Git is your friend:
+   git status
+   git diff
+   git checkout -- <file>  (undo changes to specific file)
+   git reset --hard HEAD    (undo all uncommitted changes)
+
+2. Keep backups:
+   Before each phase, commit:
+   git commit -m "Checkpoint before Phase X"
+
+3. Test incrementally:
+   Don't implement everything at once
+   Test after each file modification
+   If something breaks, you know exactly what file caused it
+
+4. Services are additive:
+   - Creating new files doesn't break anything
+   - Only modifying pages to USE services can break things
+   - Test each page modification immediately
+
+================================================================================
+NOTES FOR IMPLEMENTATION
+================================================================================
+
+1. DO NOT modify database schema
+   - Current schema is fine
+   - All changes are code-level only
+
+2. DO NOT modify CSS/JS files
+   - Frontend is already well-organized
+   - No changes needed
+
+3. DO NOT modify game files
+   - games/*.php are fine as-is
+   - Services handle the backend logic
+
+4. Keep pages simple
+   - Pages should be thin (just call services)
+   - No business logic in pages
+   - Pages are presentation layer only
+
+5. Services own the business rules
+   - All constraints enforced in services
+   - All flows enforced in services
+   - Services are the "brain" of the application
+
+6. DAOs are dumb
+   - DAOs just execute SQL
+   - No business logic in DAOs
+   - DAOs return raw data, services interpret it
+
+7. Strategies are focused
+   - Each strategy does one thing (score one questionnaire type)
+   - Strategies implement clinical algorithms
+   - Strategies are swappable and testable
+
+8. Error handling
+   - Services should return arrays with ['success' => bool, 'message' => string]
+   - Pages check $result['success'] and display $result['message']
+   - DAOs throw exceptions, services catch and return errors
+
+9. Transactions
+   - Use transactions in services for multi-step operations
+   - GameService->completeGame() uses transaction (C1)
+   - Ensures data consistency
+
+10. Messages
+    - Define message constants in services
+    - Services return appropriate message based on operation
+    - Pages display messages (never hardcode messages in pages)
+
+================================================================================
+FILE CHECKLIST
+================================================================================
+
+Phase 1 - Files to Create:
+[ ] services/GameService.php
+[ ] services/MoodService.php
+[ ] services/QuestionnaireService.php
+[ ] services/UserService.php (optional)
+
+Phase 1 - Files to Modify:
+[ ] pages/game_result.php
+[ ] pages/emotion/mood.php
+[ ] pages/emotion/questionnaire_result.php
+
+Phase 2 - Files to Create:
+[ ] services/strategies/ScoringStrategy.php
+[ ] services/strategies/GDS15Strategy.php
+[ ] services/strategies/PHQ9Strategy.php
+[ ] services/strategies/GAD7Strategy.php
+[ ] services/strategies/WHO5Strategy.php
+[ ] services/strategies/PSS4Strategy.php
+[ ] services/strategies/PSQIStrategy.php
+[ ] services/strategies/ScoringStrategyFactory.php
+
+Phase 2 - Files to Modify:
+[ ] services/QuestionnaireService.php
+
+Phase 3 - Files to Create:
+[ ] database/dao/GameDAO.php
+[ ] database/dao/MoodDAO.php
+[ ] database/dao/QuestionnaireDAO.php
+[ ] database/dao/UserDAO.php
+
+Phase 3 - Files to Modify:
+[ ] services/GameService.php
+[ ] services/MoodService.php
+[ ] services/QuestionnaireService.php
+[ ] services/UserService.php
+[ ] pages/game_result.php (instantiate DAOs)
+[ ] pages/emotion/mood.php (instantiate DAOs)
+[ ] pages/emotion/questionnaire_result.php (instantiate DAOs)
+[ ] database/functions.php (refactor)
+
+Phase 3 - Additional Pages to Update:
+[ ] pages/games.php (if using services)
+[ ] pages/game_play.php (if using services)
+[ ] pages/insights/dashboard.php (if using services)
+[ ] pages/insights/report.php (if using services)
+
+Final:
+[ ] Run full system test
+[ ] Update documentation
+[ ] Git commit
+[ ] Push to GitHub
+
+================================================================================
+END OF IMPLEMENTATION PLAN
+================================================================================
+
+Last Updated: November 29, 2025
+Status: Ready to implement
+Next Step: Create services/ folder and begin Phase 1
+================================================================================

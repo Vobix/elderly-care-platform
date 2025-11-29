@@ -35,68 +35,51 @@
 $page_title = "Track Your Mood";
 require_once __DIR__ . '/../account/auth.php';
 require_once __DIR__ . '/../../_header.php';
-require_once __DIR__ . '/../../database/functions.php';
+require_once __DIR__ . '/../../database/config.php';
+require_once __DIR__ . '/../../services/MoodService.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Messages
-$msg_select_mood = "Please select your mood for today";
-$msg_optional_notes = "Add your thoughts (optional)";
-$msg_mood_saved = "Your mood has been recorded";
-$msg_no_mood_selected = "Please select a mood before saving";
+// Initialize MoodService
+$moodService = new MoodService($pdo);
+
+// Get message constants from service
+$messages = MoodService::getMessages();
+$msg_select_mood = $messages['M1'];
+$msg_optional_notes = $messages['M2'];
 
 $success = '';
 $error = '';
 
 // Check if user already logged mood today
-global $pdo;
-$stmt = $pdo->prepare("SELECT * FROM mood_logs WHERE user_id = ? AND entry_date = CURDATE()");
-$stmt->execute([$user_id]);
-$today_mood = $stmt->fetch();
+$today_mood = $moodService->getTodaysMood($user_id);
 
 // Handle form submission (BF:6 - User clicks Save Today's Mood)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $mood_value = $_POST['mood_level'] ?? 0;
-    $mood_text = sanitizeInput($_POST['notes'] ?? ''); // C3: Notes optional
+    $mood_value = $_POST['mood_level'] ?? null;
+    $mood_text = $_POST['notes'] ?? null; // C3: Notes optional
     
-    // Mood emojis mapping
-    $emoji_map = [1 => '😢', 2 => '🙁', 3 => '😐', 4 => '🙂', 5 => '😄'];
-    $mood_emoji = $emoji_map[$mood_value] ?? '';
+    // Use MoodService - Enforces ALL constraints and flows (BF:6-10, A1, C1-C3)
+    $result = $moodService->recordMood($user_id, $mood_value, $mood_text);
     
-    // BF:7 / A1: Validate mood selection (C1: Mood Save Rule)
-    if ($mood_value >= 1 && $mood_value <= 5) {
-        try {
-            // BF:8: Save mood entry (C1: Must contain selected mood)
-            insertMood($user_id, $mood_value, $mood_emoji, $mood_text);
-            
-            // BF:10: Display confirmation (M3: Msg Mood Saved)
-            $success = $msg_mood_saved;
-            
-            // BF:9 / C2: Refresh to update history (new entry at top)
-            $stmt->execute([$user_id]);
-            $today_mood = $stmt->fetch();
-        } catch (Exception $e) {
-            $error = "Failed to save mood. Please try again.";
-            error_log("Mood insert error: " . $e->getMessage());
-        }
+    if ($result['success']) {
+        // BF:10: Display confirmation (M3)
+        $success = $result['message'];
+        
+        // Refresh today's mood
+        $today_mood = $moodService->getTodaysMood($user_id);
     } else {
-        // A1.1: No mood selected - display error (M4: Err No Mood Selected)
-        $error = $msg_no_mood_selected;
+        // A1.1: Display error (M4)
+        $error = $result['message'];
         // A1.2: Returns to BF:2 without saving (form redisplays below)
     }
 }
 
-// Get recent mood entries
-$recent_moods = getRecentMood($user_id, 7);
+// BF:9 / C2: Get recent mood entries (newest first)
+$recent_moods = $moodService->getRecentHistory($user_id, 7);
 
-// Mood labels and emojis
-$mood_data = [
-    1 => ['emoji' => '😢', 'label' => 'Very Sad', 'color' => '#dc3545'],
-    2 => ['emoji' => '🙁', 'label' => 'Sad', 'color' => '#fd7e14'],
-    3 => ['emoji' => '😐', 'label' => 'Okay', 'color' => '#ffc107'],
-    4 => ['emoji' => '🙂', 'label' => 'Happy', 'color' => '#28a745'],
-    5 => ['emoji' => '😄', 'label' => 'Very Happy', 'color' => '#20c997']
-];
+// Mood labels and emojis - using MoodService
+$mood_data = MoodService::getMoodLevels();
 
 require_once __DIR__ . '/../../_header.php';
 ?>

@@ -68,10 +68,11 @@ require_once __DIR__ . '/../../_header.php';
         <div class="value"><?php echo $mood_stats ? $mood_stats['total_entries'] : 0; ?></div>
     </div>
     
-    <div class="stat-card">
+    <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='../emotion/questionnaire_history.php'">
         <div class="icon">📋</div>
         <div class="label">Questionnaires</div>
         <div class="value"><?php echo count($questionnaire_results); ?></div>
+        <div style="font-size: 12px; color: #667eea; margin-top: 5px;">Click to view history →</div>
     </div>
 </div>
 
@@ -79,6 +80,7 @@ require_once __DIR__ . '/../../_header.php';
     <a href="../emotion/mood.php" class="action-btn">😊 Log Mood</a>
     <a href="../games.php" class="action-btn">🎮 Play Games</a>
     <a href="../emotion/questionnaire.php" class="action-btn">📋 Questionnaire</a>
+    <a href="../emotion/questionnaire_history.php" class="action-btn">📊 History</a>
     <a href="../diary.php" class="action-btn">📔 View Diary</a>
 </div>
 

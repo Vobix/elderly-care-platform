@@ -18,14 +18,13 @@
 $page_title = "Game Results";
 require_once __DIR__ . '/account/auth.php';
 require_once __DIR__ . '/../_header.php';
-require_once __DIR__ . '/../database/functions.php';
+require_once __DIR__ . '/../database/config.php';
+require_once __DIR__ . '/../services/GameService.php';
 
 $user_id = $_SESSION['user_id'];
 
-// M3: Game completion message
-$msg_game_complete = "Game complete! Your score has been saved.";
-// M4: Stats update message
-$msg_stats_updated = "Your game statistics have been updated.";
+// Initialize GameService
+$gameService = new GameService($pdo);
 
 // Get game data from POST
 $game_type = $_POST['game_type'] ?? $_GET['game'] ?? '';
@@ -35,37 +34,29 @@ $difficulty = $_POST['difficulty'] ?? 'medium';
 $attempts = $_POST['attempts'] ?? 0;
 $accuracy = $_POST['accuracy'] ?? 0;
 
-// C1: Auto Save Rule - Validate and save to database immediately
+// Save game result using GameService
+// Enforces C1 (Auto Save), C3 (Stats Update Formula)
+// Returns M3, M4 messages
+$result = null;
 if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        // Prepare additional details as JSON
-        $details = json_encode([
-            'attempts' => $attempts,
-            'accuracy' => $accuracy,
-            'score' => $score
-        ]);
-        
-        // C1: Automatic save immediately after game ends
-        $session_id = insertGameSession($user_id, $game_type, $score, $duration, $difficulty, $details);
-        $saved = true;
-        
-        // C3: Stats Update Formula - Update user statistics
-        // This is handled automatically by the database triggers/functions
-        // Times Played = Times Played + 1
-        // If Score > Best Score -> Best Score = Score
-        // Average Score = Total Score / Times Played
-        
-    } catch (Exception $e) {
-        error_log("Game save error: " . $e->getMessage());
-        $saved = false;
-    }
+    // Prepare additional details
+    $details = [
+        'max_score' => $_POST['max_score'] ?? null,
+        'accuracy' => $accuracy,
+        'level_reached' => $_POST['level_reached'] ?? null,
+        'avg_reaction_ms' => $_POST['avg_reaction_ms'] ?? null
+    ];
+    
+    // Use GameService - Enforces ALL constraints (C1, C3)
+    $result = $gameService->completeGame($user_id, $game_type, $difficulty, $score, $details);
+    $saved = $result['success'];
 } else {
     $saved = false;
 }
 
 // Get user's stats for this game
-$game_stats = getUserGameStats($user_id, $game_type);
-$stats = $game_stats[0] ?? null;
+$stats_data = $gameService->getStats($user_id, $game_type);
+$stats = $stats_data;
 
 // Game titles
 $game_titles = [
@@ -95,12 +86,13 @@ require_once __DIR__ . '/../_header.php';
 <link rel="stylesheet" href="/assets/css/game-result.css">
 
 <div class="result-container">
-    <?php if ($saved): ?>
+    <?php if ($saved && $result): ?>
         <div class="alert alert-success">
-            ✅ <?php echo $msg_game_complete; ?>
+            ✅ <?php echo $result['message']; // M3 + M4 from GameService ?>
         </div>
-        <div class="alert alert-info" style="margin-top: 10px;">
-            📊 <?php echo $msg_stats_updated; ?>
+    <?php elseif ($result && !$result['success']): ?>
+        <div class="alert alert-error">
+            ❌ <?php echo $result['message']; // M5 from GameService ?>
         </div>
     <?php endif; ?>
     
@@ -145,10 +137,9 @@ require_once __DIR__ . '/../_header.php';
     <div class="comparison">
         <h3>📈 Your Progress</h3>
         <p style="font-size: 16px; line-height: 1.8;">
-            <strong>Games Played:</strong> <?php echo $stats['games_played']; ?><br>
-            <strong>Average Score:</strong> <?php echo round($stats['avg_score']); ?><br>
-            <strong>Best Score:</strong> <?php echo round($stats['best_score']); ?><br>
-            <strong>Total Time Played:</strong> <?php echo round($stats['total_time'] / 60); ?> minutes
+            <strong>Games Played:</strong> <?php echo $stats['times_played']; // C3: Times Played ?><br>
+            <strong>Average Score:</strong> <?php echo round($stats['average_score']); // C3: Average Score ?><br>
+            <strong>Best Score:</strong> <?php echo round($stats['best_score']); // C3: Best Score ?><br>
         </p>
         
         <?php if ($score > $stats['best_score']): ?>

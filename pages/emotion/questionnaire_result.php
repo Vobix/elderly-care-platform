@@ -138,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
         <a href="questionnaire.php" class="btn btn-primary">📝 Take Another</a>
+        <a href="questionnaire_history.php" class="btn btn-primary">📊 View History</a>
         <a href="../diary.php" class="btn btn-secondary">📔 View Diary</a>
         <a href="../insights/dashboard.php" class="btn btn-success">📊 Dashboard</a>
     </div>
