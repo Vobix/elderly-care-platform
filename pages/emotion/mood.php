@@ -36,12 +36,14 @@ $page_title = "Track Your Mood";
 require_once __DIR__ . '/../account/auth.php';
 require_once __DIR__ . '/../../_header.php';
 require_once __DIR__ . '/../../database/config.php';
+require_once __DIR__ . '/../../database/dao/MoodDAO.php';
 require_once __DIR__ . '/../../services/MoodService.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Initialize MoodService
-$moodService = new MoodService($pdo);
+// Phase 3: Initialize DAO and pass to Service
+$moodDAO = new MoodDAO($pdo);
+$moodService = new MoodService($moodDAO);
 
 // Get message constants from service
 $messages = MoodService::getMessages();

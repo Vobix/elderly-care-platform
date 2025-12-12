@@ -2,6 +2,8 @@
 /**
  * MoodService - Business Logic Layer for Mood Tracking System
  * 
+ * Phase 3: Refactored to use MoodDAO for data access
+ * 
  * Enforces ALL mood tracking constraints and flows:
  * 
  * BASIC FLOW (BF:1-10):
@@ -33,8 +35,10 @@
  * - M4: "Please select a mood level before saving"
  */
 
+require_once __DIR__ . '/../database/dao/MoodDAO.php';
+
 class MoodService {
-    private $pdo;
+    private $moodDAO;
     
     // Message constants
     const MSG_SELECT_MOOD = "Please select your mood for today";
@@ -51,8 +55,8 @@ class MoodService {
         5 => ['emoji' => '😄', 'label' => 'Very Happy', 'color' => '#20c997']
     ];
     
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
+    public function __construct(MoodDAO $moodDAO) {
+        $this->moodDAO = $moodDAO;
     }
     
     /**
@@ -93,26 +97,12 @@ class MoodService {
             ];
         }
         
-        // Get mood emoji for this level
-        $moodEmoji = self::MOOD_LEVELS[$moodValue]['emoji'];
-        
         // C3: Optional Notes Rule - notes can be null or empty
         $notes = $notes ? trim($notes) : null;
         
-        // BF:8 - Save mood entry
-        // C1: Mood Save Rule - Must contain entry_date (CURDATE) and mood_value
+        // BF:8 - Save mood entry (C1: Mood Save Rule enforced)
         try {
-            $stmt = $this->pdo->prepare("
-                INSERT INTO mood_logs 
-                (user_id, entry_date, mood_value, mood_emoji, mood_text, created_at)
-                VALUES (?, CURDATE(), ?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE 
-                    mood_value = VALUES(mood_value),
-                    mood_emoji = VALUES(mood_emoji),
-                    mood_text = VALUES(mood_text)
-            ");
-            
-            $stmt->execute([$userId, $moodValue, $moodEmoji, $notes]);
+            $this->moodDAO->insert($userId, $moodValue, $notes);
             
             // BF:9 - Recent Mood History will auto-update with C2 (newest first)
             
@@ -141,38 +131,22 @@ class MoodService {
      * Returns newest entries first (ORDER BY entry_date DESC)
      * 
      * @param int $userId User ID
-     * @param int $days Number of days to retrieve (default 7)
+     * @param int $limit Number of entries to retrieve (default 7)
      * @return array Recent mood entries
      */
-    public function getRecentHistory($userId, $days = 7) {
-        // C2: History Update Rule - ORDER BY entry_date DESC ensures newest first
-        $stmt = $this->pdo->prepare("
-            SELECT entry_date, mood_value, mood_emoji, mood_text, created_at
-            FROM mood_logs
-            WHERE user_id = ?
-            ORDER BY entry_date DESC
-            LIMIT ?
-        ");
-        
-        $stmt->execute([$userId, $days]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function getRecentHistory($userId, $limit = 7) {
+        // C2: History Update Rule - MoodDAO ensures newest first
+        return $this->moodDAO->getRecentHistory($userId, $limit);
     }
     
     /**
-     * Get today's mood entry
+     * Get today's mood for a user
      * 
      * @param int $userId User ID
-     * @return array|false Today's mood entry or false if not recorded
+     * @return array|false Mood data or false if not recorded today
      */
     public function getTodaysMood($userId) {
-        $stmt = $this->pdo->prepare("
-            SELECT mood_value, mood_emoji, mood_text, entry_date, created_at
-            FROM mood_logs
-            WHERE user_id = ? AND entry_date = CURDATE()
-        ");
-        
-        $stmt->execute([$userId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $this->moodDAO->getTodaysMood($userId);
     }
     
     /**
@@ -183,19 +157,7 @@ class MoodService {
      * @return array|false Mood statistics
      */
     public function getMoodStats($userId, $days = 30) {
-        $stmt = $this->pdo->prepare("
-            SELECT 
-                AVG(mood_value) as avg_mood,
-                MIN(mood_value) as min_mood,
-                MAX(mood_value) as max_mood,
-                COUNT(*) as total_entries
-            FROM mood_logs
-            WHERE user_id = ? 
-            AND entry_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-        ");
-        
-        $stmt->execute([$userId, $days]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $this->moodDAO->getStatistics($userId, $days);
     }
     
     /**

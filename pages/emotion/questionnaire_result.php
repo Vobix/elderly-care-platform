@@ -7,6 +7,7 @@ $page_title = "Questionnaire Results";
 require_once __DIR__ . '/../account/auth.php';
 require_once __DIR__ . '/../../_header.php';
 require_once __DIR__ . '/../../database/config.php';
+require_once __DIR__ . '/../../database/dao/QuestionnaireDAO.php';
 require_once __DIR__ . '/../../services/QuestionnaireService.php';
 
 $user_id = $_SESSION['user_id'];
@@ -23,8 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Use QuestionnaireService with Strategy Pattern (Phase 2)
-    $questionnaireService = new QuestionnaireService($pdo);
+    // Phase 3: Initialize DAO and pass to Service
+    $questionnaireDAO = new QuestionnaireDAO($pdo);
+    $questionnaireService = new QuestionnaireService($questionnaireDAO);
     $result = $questionnaireService->scoreQuestionnaire(
         $user_id,
         $questionnaire_type,

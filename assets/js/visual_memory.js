@@ -31,11 +31,16 @@ function nextLevel() {
     selectedSquares = [];
     canClick = false;
     
-    updateDisplay();
-    createGrid();
-    
     // Calculate number of squares to highlight (increases with level)
     const numSquares = CONFIG.initial_squares + Math.floor((currentLevel - 1) / 2);
+    
+    // Dynamically adjust grid size to accommodate more squares
+    // Ensure grid can fit all highlighted squares with some buffer
+    const minGridSize = Math.ceil(Math.sqrt(numSquares * 1.5));
+    gridSize = Math.max(CONFIG.grid_size, minGridSize);
+    
+    updateDisplay();
+    createGrid();
     
     setTimeout(() => showSquares(numSquares), 500);
 }

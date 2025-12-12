@@ -2,6 +2,8 @@
 /**
  * QuestionnaireService - Business Logic Layer for Mental Health Questionnaires
  * 
+ * Phase 3: Refactored to use QuestionnaireDAO for data access
+ * 
  * Handles scoring and interpretation for 6 validated mental health assessments:
  * - WHO-5 (Well-Being Index)
  * - GDS-15 (Geriatric Depression Scale)
@@ -14,9 +16,10 @@
  */
 
 require_once __DIR__ . '/strategies/ScoringStrategyFactory.php';
+require_once __DIR__ . '/../database/dao/QuestionnaireDAO.php';
 
 class QuestionnaireService {
-    private $pdo;
+    private $questionnaireDAO;
     
     // Questionnaire type mapping
     const QUESTIONNAIRE_TYPES = [
@@ -28,8 +31,8 @@ class QuestionnaireService {
         'sleep' => 'PSQI'
     ];
     
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
+    public function __construct(QuestionnaireDAO $questionnaireDAO) {
+        $this->questionnaireDAO = $questionnaireDAO;
     }
     
     /**
@@ -61,8 +64,10 @@ class QuestionnaireService {
             $interpretation['questionnaire_name'] = $strategy->getName();
             $interpretation['reference'] = $strategy->getReference();
             
-            // Save to database
-            $responseId = $this->saveResult($userId, $questionnaireType, $responses, $score);
+            // Phase 3: Save to database using DAO
+            $questionnaireName = self::QUESTIONNAIRE_TYPES[$questionnaireType] ?? ucfirst($questionnaireType);
+            $questionnaireId = $this->questionnaireDAO->getOrCreateQuestionnaire($questionnaireType, $questionnaireName);
+            $responseId = $this->questionnaireDAO->saveResult($userId, $questionnaireId, $score, $responses, $interpretation);
             
             return [
                 'success' => true,
@@ -80,6 +85,28 @@ class QuestionnaireService {
                 'error' => $e->getMessage()
             ];
         }
+    }
+    
+    /**
+     * Get questionnaire results
+     * 
+     * @param int $userId User ID
+     * @param string|null $type Optional: filter by questionnaire type
+     * @return array Results
+     */
+    public function getResults($userId, $type = null) {
+        return $this->questionnaireDAO->getResults($userId, $type);
+    }
+    
+    /**
+     * Get latest result for a specific questionnaire type
+     * 
+     * @param int $userId User ID
+     * @param string $type Questionnaire type
+     * @return array|false Latest result or false
+     */
+    public function getLatestResult($userId, $type) {
+        return $this->questionnaireDAO->getLatestResult($userId, $type);
     }
     
     /**
@@ -370,125 +397,5 @@ class QuestionnaireService {
             default:
                 return $numQuestions * 5;
         }
-    }
-    
-    /**
-     * Save questionnaire result to database
-     * 
-     * @param int $userId User ID
-     * @param string $questionnaireType Questionnaire type
-     * @param array $responses User responses
-     * @param int $score Total score
-     * @return int Response ID
-     */
-    private function saveResult($userId, $questionnaireType, $responses, $score) {
-        // Get questionnaire ID
-        $questionnaireId = $this->getQuestionnaireId($questionnaireType);
-        
-        if (!$questionnaireId) {
-            throw new Exception("Unknown questionnaire type: $questionnaireType");
-        }
-        
-        // Save response
-        $stmt = $this->pdo->prepare("
-            INSERT INTO questionnaire_responses 
-            (user_id, questionnaire_id, responses, score, taken_at)
-            VALUES (?, ?, ?, ?, NOW())
-        ");
-        
-        $stmt->execute([
-            $userId,
-            $questionnaireId,
-            json_encode($responses),
-            $score
-        ]);
-        
-        return $this->pdo->lastInsertId();
-    }
-    
-    /**
-     * Get questionnaire ID by type
-     * 
-     * @param string $questionnaireType Questionnaire type
-     * @return int|false Questionnaire ID
-     */
-    private function getQuestionnaireId($questionnaireType) {
-        $stmt = $this->pdo->prepare("
-            SELECT questionnaire_id 
-            FROM questionnaires 
-            WHERE short_code = ?
-        ");
-        $stmt->execute([$questionnaireType]);
-        return $stmt->fetchColumn();
-    }
-    
-    /**
-     * Get all questionnaire results for a user
-     * 
-     * @param int $userId User ID
-     * @param string|null $questionnaireType Optional filter by type
-     * @return array Questionnaire results
-     */
-    public function getResults($userId, $questionnaireType = null) {
-        if ($questionnaireType) {
-            $stmt = $this->pdo->prepare("
-                SELECT 
-                    qr.response_id,
-                    qr.score,
-                    qr.responses,
-                    qr.taken_at,
-                    q.short_code as questionnaire_type,
-                    q.name as questionnaire_name
-                FROM questionnaire_responses qr
-                JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
-                WHERE qr.user_id = ? AND q.short_code = ?
-                ORDER BY qr.taken_at DESC
-            ");
-            $stmt->execute([$userId, $questionnaireType]);
-        } else {
-            $stmt = $this->pdo->prepare("
-                SELECT 
-                    qr.response_id,
-                    qr.score,
-                    qr.responses,
-                    qr.taken_at,
-                    q.short_code as questionnaire_type,
-                    q.name as questionnaire_name
-                FROM questionnaire_responses qr
-                JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
-                WHERE qr.user_id = ?
-                ORDER BY qr.taken_at DESC
-            ");
-            $stmt->execute([$userId]);
-        }
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    /**
-     * Get latest questionnaire result
-     * 
-     * @param int $userId User ID
-     * @param string $questionnaireType Questionnaire type
-     * @return array|false Latest result or false
-     */
-    public function getLatestResult($userId, $questionnaireType) {
-        $stmt = $this->pdo->prepare("
-            SELECT 
-                qr.response_id,
-                qr.score,
-                qr.responses,
-                qr.taken_at,
-                q.short_code as questionnaire_type,
-                q.name as questionnaire_name
-            FROM questionnaire_responses qr
-            JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
-            WHERE qr.user_id = ? AND q.short_code = ?
-            ORDER BY qr.taken_at DESC
-            LIMIT 1
-        ");
-        
-        $stmt->execute([$userId, $questionnaireType]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

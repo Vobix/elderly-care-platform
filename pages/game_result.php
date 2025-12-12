@@ -19,12 +19,14 @@ $page_title = "Game Results";
 require_once __DIR__ . '/account/auth.php';
 require_once __DIR__ . '/../_header.php';
 require_once __DIR__ . '/../database/config.php';
+require_once __DIR__ . '/../database/dao/GameDAO.php';
 require_once __DIR__ . '/../services/GameService.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Initialize GameService
-$gameService = new GameService($pdo);
+// Phase 3: Initialize DAO and pass to Service
+$gameDAO = new GameDAO($pdo);
+$gameService = new GameService($gameDAO);
 
 // Get game data from POST
 $game_type = $_POST['game_type'] ?? $_GET['game'] ?? '';

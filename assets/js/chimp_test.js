@@ -10,6 +10,7 @@ let gameStartTime;
 let totalAttempts = 0;
 let correctAttempts = 0;
 let score = 0;
+let gridSize;
 
 function startGame() {
     currentLevel = 1;
@@ -19,6 +20,7 @@ function startGame() {
     score = 0;
     gameStartTime = Date.now();
     numNumbers = CONFIG.starting_numbers;
+    gridSize = CONFIG.grid_size;
     
     document.getElementById('start-btn').style.display = 'none';
     document.getElementById('message').textContent = '';
@@ -35,6 +37,10 @@ function nextLevel() {
     canClick = false;
     totalAttempts++;
     
+    // Dynamically adjust grid size to accommodate more numbers
+    const minGridSize = Math.ceil(Math.sqrt(numNumbers * 1.8));
+    gridSize = Math.max(CONFIG.grid_size, minGridSize);
+    
     updateDisplay();
     createGrid();
     placeNumbers();
@@ -48,9 +54,9 @@ function nextLevel() {
 function createGrid() {
     const grid = document.getElementById('chimp-grid');
     grid.innerHTML = '';
-    grid.style.gridTemplateColumns = `repeat(${CONFIG.grid_size}, 1fr)`;
+    grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
     
-    const totalCells = CONFIG.grid_size * CONFIG.grid_size;
+    const totalCells = gridSize * gridSize;
     
     for (let i = 0; i < totalCells; i++) {
         const cell = document.createElement('div');
@@ -61,7 +67,7 @@ function createGrid() {
 }
 
 function placeNumbers() {
-    const totalCells = CONFIG.grid_size * CONFIG.grid_size;
+    const totalCells = gridSize * gridSize;
     const positions = [];
     
     // Generate unique random positions
