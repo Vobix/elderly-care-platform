@@ -36,7 +36,10 @@ $game_names = [
     'memory' => '🧠 Memory Match',
     'attention' => '👁️ Attention Focus',
     'reaction' => '⚡ Reaction Time',
-    'puzzle' => '🧩 Puzzle Solver'
+    'puzzle' => '🧩 Puzzle Solver',
+    'card_flip' => '🃏 Card Flip',
+    'number_memory' => '🔢 Number Memory',
+    'chimp_test' => '🐵 Chimp Test'
 ];
 
 require_once __DIR__ . '/../../_header.php';
