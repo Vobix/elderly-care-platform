@@ -22,7 +22,7 @@ class MoodDAO {
      */
     public function insert($userId, $level, $notes = null) {
         $stmt = $this->pdo->prepare("
-            INSERT INTO mood_logs (user_id, mood_level, notes, created_at)
+            INSERT INTO mood_logs (user_id, mood_value, notes, created_at)
             VALUES (?, ?, ?, NOW())
         ");
         
@@ -38,7 +38,7 @@ class MoodDAO {
      */
     public function getTodaysMood($userId) {
         $stmt = $this->pdo->prepare("
-            SELECT mood_id, mood_level, notes, created_at
+            SELECT mood_id, mood_value, notes, created_at
             FROM mood_logs
             WHERE user_id = ? AND DATE(created_at) = CURDATE()
             ORDER BY created_at DESC
@@ -61,7 +61,7 @@ class MoodDAO {
         $stmt = $this->pdo->prepare("
             SELECT 
                 mood_id,
-                mood_level,
+                mood_value,
                 notes,
                 created_at,
                 DATE(created_at) as log_date
@@ -86,7 +86,7 @@ class MoodDAO {
         $stmt = $this->pdo->prepare("
             SELECT 
                 mood_id,
-                mood_level,
+                mood_value,
                 notes,
                 created_at,
                 DATE(created_at) as log_date
@@ -111,9 +111,9 @@ class MoodDAO {
         $stmt = $this->pdo->prepare("
             SELECT 
                 COUNT(*) as total_logs,
-                AVG(mood_level) as average_mood,
-                MAX(mood_level) as best_mood,
-                MIN(mood_level) as worst_mood
+                AVG(mood_value) as average_mood,
+                MAX(mood_value) as best_mood,
+                MIN(mood_value) as worst_mood
             FROM mood_logs
             WHERE user_id = ? 
               AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
@@ -134,7 +134,7 @@ class MoodDAO {
     public function update($moodId, $level, $notes = null) {
         $stmt = $this->pdo->prepare("
             UPDATE mood_logs
-            SET mood_level = ?, notes = ?
+            SET mood_value = ?, notes = ?
             WHERE mood_id = ?
         ");
         
