@@ -65,18 +65,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("UPDATE users SET last_login_at = NOW() WHERE user_id = ?");
                     $stmt->execute([$user['user_id']]);
                     
-                    // Check if user needs to complete baseline assessment
+                    // Redirect based on role - admins don't need baseline assessment
+                    if ($user['is_admin']) {
+                        header("Location: /pages/admin/index.php");
+                        exit();
+                    }
+                    
+                    // Check if regular user needs to complete baseline assessment
                     if (!$user['has_completed_initial_assessment']) {
                         header("Location: /pages/emotion/questionnaire.php?type=PHQ9&baseline=1");
                         exit();
                     }
                     
-                    // Redirect based on role
-                    if ($user['is_admin']) {
-                        header("Location: /pages/admin/index.php");
-                    } else {
-                        header("Location: /pages/insights/dashboard.php");
-                    }
+                    // Regular user redirect
+                    header("Location: /pages/insights/dashboard.php");
                     exit();
                 }
             } else {
