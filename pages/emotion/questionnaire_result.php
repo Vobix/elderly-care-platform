@@ -35,6 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $format
     );
     
+    // Check if scoring was successful
+    if (!$result['success']) {
+        $error_message = $result['message'] ?? 'An error occurred while processing your questionnaire.';
+        echo "<div class='alert alert-error'>{$error_message}</div>";
+        require_once __DIR__ . '/../../_footer.php';
+        exit;
+    }
+    
     // Extract interpretation data from service (Phase 2: Strategy Pattern)
     $total_score = $result['score'];
     $interpretation_data = $result['interpretation'];

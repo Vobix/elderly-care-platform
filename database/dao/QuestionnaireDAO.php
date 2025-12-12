@@ -64,7 +64,7 @@ class QuestionnaireDAO {
      */
     public function saveResult($userId, $questionnaireId, $score, $answers, $interpretation = []) {
         $stmt = $this->pdo->prepare("
-            INSERT INTO questionnaire_results 
+            INSERT INTO questionnaire_responses 
             (user_id, questionnaire_id, score, answers, interpretation, completed_at)
             VALUES (?, ?, ?, ?, ?, NOW())
         ");
@@ -101,7 +101,7 @@ class QuestionnaireDAO {
                     qr.completed_at,
                     q.type as questionnaire_type,
                     q.name as questionnaire_name
-                FROM questionnaire_results qr
+                FROM questionnaire_responses qr
                 JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
                 WHERE qr.user_id = ? AND q.type = ?
                 ORDER BY qr.completed_at DESC
@@ -117,7 +117,7 @@ class QuestionnaireDAO {
                     qr.completed_at,
                     q.type as questionnaire_type,
                     q.name as questionnaire_name
-                FROM questionnaire_results qr
+                FROM questionnaire_responses qr
                 JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
                 WHERE qr.user_id = ?
                 ORDER BY qr.completed_at DESC
@@ -145,7 +145,7 @@ class QuestionnaireDAO {
                 qr.completed_at,
                 q.type as questionnaire_type,
                 q.name as questionnaire_name
-            FROM questionnaire_results qr
+            FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
             WHERE qr.user_id = ? AND q.type = ?
             ORDER BY qr.completed_at DESC
@@ -171,7 +171,7 @@ class QuestionnaireDAO {
                 MAX(qr.score) as best_score,
                 MIN(qr.score) as worst_score,
                 MAX(qr.completed_at) as last_taken
-            FROM questionnaire_results qr
+            FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
             WHERE qr.user_id = ? AND q.type = ?
         ");
@@ -187,7 +187,7 @@ class QuestionnaireDAO {
      * @return bool Success
      */
     public function deleteResult($resultId) {
-        $stmt = $this->pdo->prepare("DELETE FROM questionnaire_results WHERE result_id = ?");
+        $stmt = $this->pdo->prepare("DELETE FROM questionnaire_responses WHERE result_id = ?");
         return $stmt->execute([$resultId]);
     }
 }
