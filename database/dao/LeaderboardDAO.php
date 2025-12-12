@@ -191,6 +191,57 @@ class LeaderboardDAO {
     }
     
     /**
+     * Recalculate ranks and percentiles for all players in a game
+     * Called after a new score is recorded
+     * 
+     * @param int $gameId Game ID
+     * @return bool Success
+     */
+    public function recalculateRanks($gameId) {
+        try {
+            // Get total players for this game
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) as total_players
+                FROM user_game_stats
+                WHERE game_id = ?
+            ");
+            $stmt->execute([$gameId]);
+            $totalPlayers = $stmt->fetchColumn();
+            
+            if ($totalPlayers == 0) {
+                return true;
+            }
+            
+            // Update ranks and percentiles based on best_score
+            // Using a temporary table approach for MySQL compatibility
+            $this->pdo->exec("SET @rank = 0");
+            
+            $stmt = $this->pdo->prepare("
+                UPDATE user_game_stats ugs
+                JOIN (
+                    SELECT 
+                        stat_id,
+                        @rank := @rank + 1 AS new_rank,
+                        ROUND((({$totalPlayers} - @rank) / ({$totalPlayers} - 1)) * 100, 2) AS new_percentile
+                    FROM user_game_stats
+                    WHERE game_id = ?
+                    ORDER BY best_score DESC, average_score DESC, times_played DESC
+                ) ranked ON ugs.stat_id = ranked.stat_id
+                SET 
+                    ugs.rank = ranked.new_rank,
+                    ugs.percentile = ranked.new_percentile
+                WHERE ugs.game_id = ?
+            ");
+            
+            $stmt->execute([$gameId, $gameId]);
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error recalculating ranks for game {$gameId}: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Get percentile message based on performance
      * 
      * @param float $percentile Percentile (0-100)
