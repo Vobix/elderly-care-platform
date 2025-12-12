@@ -23,7 +23,7 @@ function getUserByEmail($email) {
  */
 function getUserById($user_id) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     return $stmt->fetch();
 }
@@ -33,7 +33,7 @@ function getUserById($user_id) {
  */
 function createUser($email, $password_hash) {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, NOW())");
+    $stmt = $pdo->prepare("INSERT INTO users (email, password, created_at) VALUES (?, ?, NOW())");
     $stmt->execute([$email, $password_hash]);
     return $pdo->lastInsertId();
 }
@@ -135,11 +135,11 @@ function updateSettings($user_id, $high_contrast, $large_font, $voice_assistant,
 /**
  * Insert or update mood entry
  * @implements C1: Mood Save Rule - entry_date must not be null, mood_value required (1-5)
- * @implements C3: Optional Notes Rule - mood_text can be empty string, entry still saves
+ * @implements C3: Optional Notes Rule - notes can be empty string, entry still saves
  */
 function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '') {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO mood_logs (user_id, entry_date, mood_value, mood_emoji, mood_text) VALUES (?, CURDATE(), ?, ?, ?) ON DUPLICATE KEY UPDATE mood_value = ?, mood_emoji = ?, mood_text = ?");
+    $stmt = $pdo->prepare("INSERT INTO mood_logs (user_id, entry_date, mood_value, mood_emoji, notes) VALUES (?, CURDATE(), ?, ?, ?) ON DUPLICATE KEY UPDATE mood_value = ?, mood_emoji = ?, notes = ?");
     $stmt->execute([$user_id, $mood_value, $mood_emoji, $mood_text, $mood_value, $mood_emoji, $mood_text]);
     return $stmt->rowCount();
 }
@@ -347,7 +347,7 @@ function getQuestionnaireResults($user_id, $questionnaire_type = null) {
             FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
             WHERE qr.user_id = ? AND q.short_code = ? 
-            ORDER BY qr.taken_at DESC
+            ORDER BY qr.completed_at DESC
         ");
         $stmt->execute([$user_id, $questionnaire_type]);
     } else {
@@ -356,7 +356,7 @@ function getQuestionnaireResults($user_id, $questionnaire_type = null) {
             FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
             WHERE qr.user_id = ? 
-            ORDER BY qr.taken_at DESC
+            ORDER BY qr.completed_at DESC
         ");
         $stmt->execute([$user_id]);
     }
@@ -373,7 +373,7 @@ function getLatestQuestionnaireResult($user_id, $questionnaire_type) {
         FROM questionnaire_responses qr
         JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
         WHERE qr.user_id = ? AND q.short_code = ? 
-        ORDER BY qr.taken_at DESC 
+        ORDER BY qr.completed_at DESC 
         LIMIT 1
     ");
     $stmt->execute([$user_id, $questionnaire_type]);
