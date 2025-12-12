@@ -20,13 +20,15 @@ require_once __DIR__ . '/account/auth.php';
 require_once __DIR__ . '/../_header.php';
 require_once __DIR__ . '/../database/config.php';
 require_once __DIR__ . '/../database/dao/GameDAO.php';
+require_once __DIR__ . '/../database/dao/LeaderboardDAO.php';
 require_once __DIR__ . '/../services/GameService.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Phase 3: Initialize DAO and pass to Service
+// Phase 3: Initialize DAOs and pass to Service
 $gameDAO = new GameDAO($pdo);
-$gameService = new GameService($gameDAO);
+$leaderboardDAO = new LeaderboardDAO($pdo);
+$gameService = new GameService($gameDAO, $leaderboardDAO);
 
 // Get game data from POST
 $game_type = $_POST['game_type'] ?? $_GET['game'] ?? '';
@@ -40,6 +42,9 @@ $accuracy = $_POST['accuracy'] ?? 0;
 // Enforces C1 (Auto Save), C3 (Stats Update Formula)
 // Returns M3, M4 messages
 $result = null;
+$ranking = null;
+$leaderboard = [];
+
 if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Prepare additional details
     $details = [
@@ -52,6 +57,12 @@ if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Use GameService - Enforces ALL constraints (C1, C3)
     $result = $gameService->completeGame($user_id, $game_type, $difficulty, $score, $details);
     $saved = $result['success'];
+    
+    // Get leaderboard and ranking after save
+    if ($saved) {
+        $ranking = $gameService->getUserRanking($user_id, $game_type);
+        $leaderboard = $gameService->getLeaderboard($game_type, 10);
+    }
 } else {
     $saved = false;
 }
@@ -65,7 +76,10 @@ $game_titles = [
     'memory' => 'Memory Match',
     'attention' => 'Attention Focus',
     'reaction' => 'Reaction Time',
-    'puzzle' => 'Puzzle Solver'
+    'puzzle' => 'Puzzle Solver',
+    'card_flip' => 'Card Flip Memory',
+    'chimp_test' => 'Chimp Test',
+    'number_memory' => 'Number Memory'
 ];
 
 $game_name = $game_titles[$game_type] ?? 'Game';
@@ -149,6 +163,71 @@ require_once __DIR__ . '/../_header.php';
                 🎊 <strong>New Personal Best!</strong> You beat your previous record!
             </div>
         <?php endif; ?>
+    </div>
+    <?php endif; ?>
+    
+    <?php if ($ranking): ?>
+    <div class="ranking-section" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; text-align: center;">
+        <h3 style="margin: 0 0 15px 0; font-size: 24px;">🏅 Your Global Ranking</h3>
+        <div style="font-size: 48px; font-weight: bold; margin: 10px 0;">
+            #<?php echo number_format($ranking['rank']); ?>
+        </div>
+        <div style="font-size: 20px; margin: 10px 0;">
+            out of <?php echo number_format($ranking['total_players']); ?> players
+        </div>
+        <div style="font-size: 32px; font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 10px;">
+            Top <?php echo $ranking['percentile']; ?>%
+        </div>
+        <div style="font-size: 18px; margin-top: 10px;">
+            <?php echo $ranking['message']; ?>
+        </div>
+        <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
+            You're better than <?php echo number_format($ranking['better_than']); ?> player<?php echo $ranking['better_than'] != 1 ? 's' : ''; ?>!
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <?php if (!empty($leaderboard)): ?>
+    <div class="leaderboard-section" style="margin-top: 30px;">
+        <h3 style="text-align: center; margin-bottom: 20px;">🏆 Top 10 Leaderboard</h3>
+        <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 15px; text-align: left;">Rank</th>
+                        <th style="padding: 15px; text-align: left;">Player</th>
+                        <th style="padding: 15px; text-align: right;">Score</th>
+                        <th style="padding: 15px; text-align: center;">Games</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($leaderboard as $index => $entry): ?>
+                    <tr style="border-top: 1px solid #e9ecef; <?php echo $entry['user_id'] == $user_id ? 'background: #fff3cd;' : ''; ?>">
+                        <td style="padding: 15px;">
+                            <?php 
+                            if ($entry['rank'] == 1) echo '🥇';
+                            elseif ($entry['rank'] == 2) echo '🥈';
+                            elseif ($entry['rank'] == 3) echo '🥉';
+                            else echo '#' . $entry['rank'];
+                            ?>
+                        </td>
+                        <td style="padding: 15px; font-weight: <?php echo $entry['user_id'] == $user_id ? 'bold' : 'normal'; ?>;">
+                            <?php echo htmlspecialchars($entry['username']); ?>
+                            <?php if ($entry['user_id'] == $user_id): ?>
+                                <span style="color: #667eea;">(You)</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="padding: 15px; text-align: right; font-weight: bold; color: #667eea;">
+                            <?php echo number_format($entry['score']); ?>
+                        </td>
+                        <td style="padding: 15px; text-align: center; color: #666;">
+                            <?php echo $entry['times_played']; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
     <?php endif; ?>
     

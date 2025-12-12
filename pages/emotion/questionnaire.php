@@ -165,6 +165,9 @@ require_once __DIR__ . '/../../_header.php';
     <form method="POST" action="questionnaire_result.php">
         <input type="hidden" name="questionnaire_type" value="<?php echo $questionnaire_type; ?>">
         <input type="hidden" name="format" value="<?php echo $current_q['format']; ?>">
+        <?php if (isset($_GET['baseline'])): ?>
+        <input type="hidden" name="baseline" value="1">
+        <?php endif; ?>
         
         <?php 
         $answers = $answer_formats[$current_q['format']];

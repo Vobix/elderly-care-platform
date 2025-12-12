@@ -44,28 +44,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // If no errors, create user
     if (empty($errors)) {
+        require_once __DIR__ . '/../database/config.php';
+        require_once __DIR__ . '/../database/dao/UserDAO.php';
+        
         try {
             // Hash password
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
             
-            // Create user
-            $user_id = createUser($email, $password_hash);
+            // Generate username from email
+            $username = sanitizeInput($_POST['username'] ?? explode('@', $email)[0]);
             
-            // Create default profile
-            createDefaultProfile($user_id);
-            
-            // Update profile with full name if provided
-            if (!empty($full_name)) {
-                global $pdo;
-                $stmt = $pdo->prepare("UPDATE profiles SET full_name = ? WHERE user_id = ?");
-                $stmt->execute([$full_name, $user_id]);
-            }
+            // Create user using UserDAO
+            $userDAO = new UserDAO($pdo);
+            $user_id = $userDAO->create($username, $email, $password_hash, $full_name, null);
             
             // Create default settings
-            createDefaultSettings($user_id);
+            $stmt = $pdo->prepare("INSERT INTO user_settings (user_id) VALUES (?)");
+            $stmt->execute([$user_id]);
             
-            // Redirect to login with success message
-            header("Location: login.php?registered=1");
+            // Log user in immediately
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['email'] = $email;
+            $_SESSION['username'] = $username;
+            $_SESSION['last_activity'] = time();
+            
+            // Redirect to baseline assessment (PHQ-9 questionnaire)
+            header("Location: /pages/emotion/questionnaire.php?type=PHQ9&baseline=1");
             exit();
             
         } catch (Exception $e) {
@@ -100,6 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="full_name">Full Name</label>
                 <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($_POST['full_name'] ?? ''); ?>">
                 <small>Optional - you can add this later</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Username *</label>
+                <input type="text" id="username" name="username" required value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                <small>This will be displayed on leaderboards</small>
             </div>
             
             <div class="form-group">

@@ -3,6 +3,7 @@
  * GameService - Business Logic Layer for Game System
  * 
  * Phase 3: Refactored to use GameDAO for data access
+ * Added: Leaderboard and percentile ranking system
  * 
  * Enforces ALL game constraints:
  * - C1: Auto Save Rule - Every game completion MUST save immediately
@@ -19,9 +20,11 @@
  */
 
 require_once __DIR__ . '/../database/dao/GameDAO.php';
+require_once __DIR__ . '/../database/dao/LeaderboardDAO.php';
 
 class GameService {
     private $gameDAO;
+    private $leaderboardDAO;
     
     // Message constants
     const MSG_CHOOSE_GAME = "Please choose a game to play";
@@ -34,10 +37,11 @@ class GameService {
     const ALLOWED_DIFFICULTIES = ['easy', 'medium', 'hard'];
     
     // Games that don't require difficulty selection
-    const NO_DIFFICULTY_GAMES = ['visual_memory', 'number_memory', 'verbal_memory', 'chimp_test'];
+    const NO_DIFFICULTY_GAMES = ['visual_memory', 'number_memory', 'verbal_memory', 'chimp_test', 'card_flip'];
     
-    public function __construct(GameDAO $gameDAO) {
+    public function __construct(GameDAO $gameDAO, LeaderboardDAO $leaderboardDAO = null) {
         $this->gameDAO = $gameDAO;
+        $this->leaderboardDAO = $leaderboardDAO;
     }
     
     /**
@@ -81,6 +85,11 @@ class GameService {
             // C3: Update stats with exact formula
             $this->gameDAO->updateStats($userId, $gameId, $score);
             
+            // Update leaderboard and recalculate rankings
+            if ($this->leaderboardDAO) {
+                $this->leaderboardDAO->recalculateRanks($gameId);
+            }
+            
             // Commit transaction - C1 guaranteed
             $this->gameDAO->commit();
             
@@ -88,7 +97,8 @@ class GameService {
             return [
                 'success' => true,
                 'message' => self::MSG_GAME_COMPLETE . ' ' . self::MSG_STATS_UPDATED,
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
+                'game_id' => $gameId
             ];
             
         } catch (Exception $e) {
@@ -175,6 +185,46 @@ class GameService {
      */
     public function getRecentSessions($userId, $limit = 10) {
         return $this->gameDAO->getRecentSessions($userId, $limit);
+    }
+    
+    /**
+     * Get leaderboard for a specific game
+     * 
+     * @param string $gameCode Game code
+     * @param int $limit Number of top players
+     * @return array Leaderboard data
+     */
+    public function getLeaderboard($gameCode, $limit = 10) {
+        if (!$this->leaderboardDAO) {
+            return [];
+        }
+        
+        $gameId = $this->gameDAO->getGameIdByCode($gameCode);
+        if (!$gameId) {
+            return [];
+        }
+        
+        return $this->leaderboardDAO->getGameLeaderboard($gameId, $limit);
+    }
+    
+    /**
+     * Get user's rank and percentile for a game
+     * 
+     * @param int $userId User ID
+     * @param string $gameCode Game code
+     * @return array|null Rank information with percentile
+     */
+    public function getUserRanking($userId, $gameCode) {
+        if (!$this->leaderboardDAO) {
+            return null;
+        }
+        
+        $gameId = $this->gameDAO->getGameIdByCode($gameCode);
+        if (!$gameId) {
+            return null;
+        }
+        
+        return $this->leaderboardDAO->getUserRank($userId, $gameId);
     }
     
     /**

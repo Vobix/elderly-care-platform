@@ -38,20 +38,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both email and password.";
     } else {
         // Check database for user
-        $user = getUserByEmail($email);
+        require_once __DIR__ . '/../database/config.php';
         
-        if ($user && password_verify($password, $user['password_hash'])) {
-            // Password is correct - start session
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['last_activity'] = time();
+        try {
+            $stmt = $pdo->prepare("SELECT user_id, username, email, password, is_admin, is_active, has_completed_initial_assessment FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            // Redirect to dashboard
-            header("Location: /pages/insights/dashboard.php");
-            exit();
-        } else {
-            // Invalid credentials
-            $error = "Invalid email or password.";
+            if ($user && password_verify($password, $user['password'])) {
+                // Check if account is active
+                if (!$user['is_active']) {
+                    $error = "Your account has been deactivated. Please contact support.";
+                } else {
+                    // Password is correct - start session
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['email'] = $user['email'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['is_admin'] = $user['is_admin'];
+                    $_SESSION['last_activity'] = time();
+                    
+                    // Update last_login_at
+                    $stmt = $pdo->prepare("UPDATE users SET last_login_at = NOW() WHERE user_id = ?");
+                    $stmt->execute([$user['user_id']]);
+                    
+                    // Check if user needs to complete baseline assessment
+                    if (!$user['has_completed_initial_assessment']) {
+                        header("Location: /pages/emotion/questionnaire.php?type=PHQ9&baseline=1");
+                        exit();
+                    }
+                    
+                    // Redirect based on role
+                    if ($user['is_admin']) {
+                        header("Location: /pages/admin/index.php");
+                    } else {
+                        header("Location: /pages/insights/dashboard.php");
+                    }
+                    exit();
+                }
+            } else {
+                // Invalid credentials
+                $error = "Invalid email or password.";
+            }
+        } catch (PDOException $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error = "An error occurred. Please try again later.";
         }
     }
 }

@@ -63,11 +63,11 @@ $games = [
         'color' => '#9C27B0'
     ],
     [
-        'id' => 'visual_memory',
-        'name' => 'Visual Memory',
-        'icon' => '👁️‍🗨️',
-        'description' => 'Remember the positions of highlighted squares on a grid.',
-        'benefits' => 'Enhances visual memory and spatial awareness',
+        'id' => 'card_flip',
+        'name' => 'Card Flip Memory',
+        'icon' => '🃏',
+        'description' => 'Match pairs of cards by remembering their positions.',
+        'benefits' => 'Enhances pattern recognition and visual memory',
         'color' => '#00BCD4'
     ],
     [
@@ -77,14 +77,6 @@ $games = [
         'description' => 'Remember increasingly long sequences of numbers.',
         'benefits' => 'Improves working memory and number recall',
         'color' => '#E91E63'
-    ],
-    [
-        'id' => 'verbal_memory',
-        'name' => 'Verbal Memory',
-        'icon' => '📝',
-        'description' => 'Identify whether you\'ve seen each word before.',
-        'benefits' => 'Strengthens verbal memory and recognition',
-        'color' => '#009688'
     ],
     [
         'id' => 'chimp_test',
@@ -109,7 +101,7 @@ require_once __DIR__ . '/../_header.php';
 <div class="games-grid">
     <?php foreach ($games as $game): 
         // New games without difficulty selection
-        $no_difficulty_games = ['visual_memory', 'number_memory', 'verbal_memory', 'chimp_test'];
+        $no_difficulty_games = ['card_flip', 'number_memory', 'chimp_test'];
         $has_difficulty = !in_array($game['id'], $no_difficulty_games);
     ?>
         <div class="game-card" style="border-left-color: <?php echo $game['color']; ?>;">

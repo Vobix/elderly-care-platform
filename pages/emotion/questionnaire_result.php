@@ -11,6 +11,7 @@ require_once __DIR__ . '/../../database/dao/QuestionnaireDAO.php';
 require_once __DIR__ . '/../../services/QuestionnaireService.php';
 
 $user_id = $_SESSION['user_id'];
+$isBaseline = isset($_POST['baseline']) || isset($_GET['baseline']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $questionnaire_type = $_POST['questionnaire_type'] ?? 'wellbeing';
@@ -46,6 +47,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $emoji = $interpretation_data['emoji'];
     $questionnaire_name = $interpretation_data['questionnaire_name'];
     $reference = $interpretation_data['reference'];
+    
+    // If this is a baseline assessment, save it and mark user as completed
+    if ($isBaseline) {
+        try {
+            // Determine risk category based on score and questionnaire type
+            $riskCategory = 'low';
+            if ($questionnaire_type === 'PHQ9') {
+                if ($total_score >= 20) $riskCategory = 'critical';
+                elseif ($total_score >= 15) $riskCategory = 'high';
+                elseif ($total_score >= 10) $riskCategory = 'moderate';
+            } elseif ($questionnaire_type === 'GAD7') {
+                if ($total_score >= 15) $riskCategory = 'critical';
+                elseif ($total_score >= 10) $riskCategory = 'high';
+                elseif ($total_score >= 5) $riskCategory = 'moderate';
+            } elseif ($questionnaire_type === 'GDS15') {
+                if ($total_score >= 11) $riskCategory = 'high';
+                elseif ($total_score >= 5) $riskCategory = 'moderate';
+            }
+            
+            // Get questionnaire ID
+            $stmt = $pdo->prepare("SELECT questionnaire_id FROM questionnaires WHERE type = ?");
+            $stmt->execute([$questionnaire_type]);
+            $questionnaireId = $stmt->fetchColumn();
+            
+            // Save baseline assessment
+            $stmt = $pdo->prepare("
+                INSERT INTO baseline_assessments 
+                (user_id, questionnaire_id, score, risk_category, interpretation, responses) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $user_id,
+                $questionnaireId,
+                $total_score,
+                $riskCategory,
+                json_encode($interpretation_data),
+                json_encode($responses)
+            ]);
+            
+            $baselineId = $pdo->lastInsertId();
+            
+            // Update user to mark baseline assessment as completed
+            $stmt = $pdo->prepare("
+                UPDATE users 
+                SET has_completed_initial_assessment = 1, 
+                    baseline_assessment_id = ? 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$baselineId, $user_id]);
+            
+        } catch (PDOException $e) {
+            error_log("Baseline assessment save error: " . $e->getMessage());
+        }
+    }
 } else {
     header("Location: questionnaire.php");
     exit();
@@ -83,11 +138,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </p>
     </div>
     
+    <?php if ($isBaseline): ?>
+    <div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; margin: 30px 0; border: 2px solid #c3e6cb;">
+        <h3>✅ Baseline Assessment Complete!</h3>
+        <p>Thank you for completing your initial wellness assessment. This will help us track your progress over time and provide personalized recommendations.</p>
+        <p><strong>Risk Category:</strong> <span style="text-transform: uppercase;"><?php echo $riskCategory; ?></span></p>
+    </div>
+    <?php endif; ?>
+    
     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <?php if ($isBaseline): ?>
+        <a href="../insights/dashboard.php" class="btn btn-primary">🎉 Get Started</a>
+        <?php else: ?>
         <a href="questionnaire.php" class="btn btn-primary">📝 Take Another</a>
         <a href="questionnaire_history.php" class="btn btn-primary">📊 View History</a>
         <a href="../diary.php" class="btn btn-secondary">📔 View Diary</a>
         <a href="../insights/dashboard.php" class="btn btn-success">📊 Dashboard</a>
+        <?php endif; ?>
     </div>
 </div>
 
