@@ -7,9 +7,13 @@
 session_start();
 require_once __DIR__ . '/../database/functions.php';
 
-// If already logged in, redirect to dashboard
+// If already logged in, redirect based on role
 if (isset($_SESSION['user_id'])) {
-    header("Location: /pages/insights/dashboard.php");
+    if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']) {
+        header("Location: /pages/admin/index.php");
+    } else {
+        header("Location: /pages/insights/dashboard.php");
+    }
     exit();
 }
 
