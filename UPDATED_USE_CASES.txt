@@ -1,0 +1,333 @@
+================================================================================
+USE CASE 2: LOGIN
+================================================================================
+
+USE CASE NAME
+UC02_LOGIN
+
+USE CASE DESCRIPTION
+This use case describes how the user logs in to the website with their respective 
+accounts. Upon successful authentication, the system checks if the user is an 
+administrator or if they have completed their baseline mental health assessment.
+
+PRE CONDITION
+User is registered in the system.
+
+POST-CONDITION
+- User is authenticated and authorized.
+- If user is an admin, system redirects to Admin Dashboard.
+- If user is a regular user without baseline assessment, system triggers 
+  UC03 – Baseline Questionnaire.
+- If user is a regular user with completed baseline, system redirects to 
+  Personal Dashboard.
+
+
+BASIC FLOW
+User                                    System
+                                        System displays Login Page
+
+User inputs account credentials 
+to login
+                                        System verifies credentials with 
+                                        database [A1: Invalid Credentials]
+
+                                        System checks if user is an 
+                                        administrator [C1: Admin Bypass Rule]
+
+                                        If admin = true:
+                                          System redirects to Admin Dashboard
+                                        
+                                        If admin = false:
+                                          System checks baseline_assessments 
+                                          table for user's record 
+                                          [C2: Baseline Check Rule]
+
+                                        If baseline exists:
+                                          System redirects to Personal Dashboard 
+                                          [M2: Msg Login Success]
+                                        
+                                        If baseline does not exist:
+                                          System invokes UC03_Baseline_Questionnaire
+                                        
+                                        After UC03 completes, system redirects 
+                                        to Personal Dashboard
+
+
+
+
+ALTERNATE FLOW
+A1: Invalid Credentials
+  A1.1: System displays error message. [M1: Err Invalid Credentials]
+  A1.2: System returns to Step BF:2 for user to re-enter credentials
+
+
+MESSAGE
+M1: Err Invalid Credentials = {Incorrect email or password. Please try again}
+M2: Msg Login Success = {Login successful. Redirecting…}
+M3: Msg Account Required = {You must have an account to log in}
+M4: Msg Baseline Required = {Welcome! Please complete a brief mental health 
+                             assessment to personalize your experience}
+
+
+CONSTRAINT
+C1: Admin Bypass Rule
+ - Administrators are exempt from the baseline questionnaire requirement.
+ - Admin users are redirected directly to the Admin Dashboard after login.
+
+C2: Baseline Check Rule
+ - System must verify if user has completed any baseline questionnaire 
+   (PHQ-9, GAD-7, or GDS-15).
+ - Check is performed by querying baseline_assessments table for user_id.
+
+C3: Credential Match Rule
+ - Login is granted only if the entered email and password match a valid 
+   record in the users table.
+
+C4: First-Time User Rule
+ - Users logging in for the first time (no baseline record) must complete 
+   UC03 before accessing the main system features.
+
+
+
+
+================================================================================
+USE CASE 3: BASELINE QUESTIONNAIRE
+================================================================================
+
+USE CASE NAME
+UC03_BASELINE_QUESTIONNAIRE
+
+USE CASE DESCRIPTION
+This use case describes how a first-time user must complete a baseline mental 
+health assessment questionnaire immediately after their first login. The user 
+selects one questionnaire type (PHQ-9 for depression, GAD-7 for anxiety, or 
+GDS-15 for geriatric depression) and answers all required questions. This step 
+is mandatory for regular users and cannot be skipped before accessing the 
+dashboard.
+
+PRE CONDITION
+- User has successfully logged in through UC02_LOGIN.
+- User has no existing baseline assessment record in baseline_assessments table.
+- User is not an administrator.
+
+POST-CONDITION
+- System saves the completed questionnaire as a baseline assessment.
+- System calculates and stores the score, risk level, and interpretation.
+- System records the assessment in both questionnaire_responses and 
+  baseline_assessments tables.
+- User gains access to the Personal Dashboard.
+
+
+BASIC FLOW
+User                                    System
+
+                                        This use case begins after successful 
+                                        login when baseline check fails
+
+                                        System displays Questionnaire 
+                                        Selection Screen with three options:
+                                        - PHQ-9 (Depression Screening)
+                                        - GAD-7 (Anxiety Screening)  
+                                        - GDS-15 (Geriatric Depression)
+                                        [M1: Msg Select Questionnaire]
+
+User selects one questionnaire type
+
+User clicks "Start Assessment"
+                                        System retrieves questions for 
+                                        selected questionnaire from database 
+                                        [C1: Question Retrieval Rule]
+
+                                        System displays questionnaire form 
+                                        with all questions [M2: Msg Answer All]
+
+User reads and answers all questions
+(using provided scale options)
+
+User clicks "Submit Assessment"
+                                        System validates that all questions 
+                                        are answered [A1: Incomplete Answers]
+
+                                        System calculates total score using 
+                                        appropriate scoring strategy 
+                                        [C2: Scoring Strategy Rule]
+
+                                        System determines risk level and 
+                                        clinical interpretation 
+                                        [C3: Interpretation Rule]
+
+                                        System saves record to 
+                                        questionnaire_responses table
+
+                                        System saves record to 
+                                        baseline_assessments table 
+                                        [C4: Baseline Save Rule]
+
+                                        System displays results page showing:
+                                        - Total score
+                                        - Risk level (Low/Moderate/High/Critical)
+                                        - Clinical interpretation
+                                        - Recommendations [M3: Msg Results]
+
+User reviews results
+
+User clicks "Continue to Dashboard"
+                                        System redirects to Personal Dashboard 
+                                        [M4: Msg Assessment Complete]
+
+
+ALTERNATE FLOW
+A1: Incomplete Answers
+  A1.1: System identifies unanswered questions
+  A1.2: System displays error message. [M5: Err Incomplete]
+  A1.3: System highlights unanswered questions in red
+  A1.4: System returns to Step BF:6 without saving
+
+A2: User Navigates Away
+  A2.1: If user attempts to navigate away from questionnaire page
+  A2.2: System displays warning. [M6: Warn Must Complete]
+  A2.3: System prevents navigation until assessment is completed
+
+
+MESSAGE
+M1: Msg Select Questionnaire = {Welcome! To personalize your experience, 
+                                 please complete a brief mental health screening. 
+                                 Choose the assessment that best fits your needs.}
+
+M2: Msg Answer All = {Please answer all questions honestly. Your responses are 
+                      confidential and will help us provide better support.}
+
+M3: Msg Results = {Your Assessment Results - This information helps us understand 
+                   your mental health needs and provide appropriate resources.}
+
+M4: Msg Assessment Complete = {Thank you for completing the assessment. 
+                                You now have full access to the platform.}
+
+M5: Err Incomplete = {Please answer all questions before submitting.}
+
+M6: Warn Must Complete = {You must complete the baseline assessment before 
+                           accessing the dashboard.}
+
+
+CONSTRAINT
+C1: Question Retrieval Rule
+ - System must load questions from questionnaires table based on selected type
+ - Questions must be presented in the correct order (order_num field)
+ - All scale options must be displayed accurately
+
+C2: Scoring Strategy Rule
+ - System must use the correct scoring strategy (PHQ9Strategy, GAD7Strategy, 
+   or GDS15Strategy) based on questionnaire type
+ - Score calculation must follow clinical standards for each questionnaire type
+
+C3: Interpretation Rule
+ - System must provide appropriate clinical interpretation based on score ranges:
+   * PHQ-9: 0-4 (Minimal), 5-9 (Mild), 10-14 (Moderate), 15-19 (Moderately Severe), 
+            20-27 (Severe)
+   * GAD-7: 0-4 (Minimal), 5-9 (Mild), 10-14 (Moderate), 15-21 (Severe)
+   * GDS-15: 0-4 (Normal), 5-8 (Mild), 9-11 (Moderate), 12-15 (Severe)
+
+C4: Baseline Save Rule
+ - Completed questionnaire must be saved to both tables:
+   * questionnaire_responses: Full response record
+   * baseline_assessments: Baseline reference with user_id, questionnaire_id, 
+                           score, risk_level, completed_at
+ - Both saves must succeed for the transaction to complete
+
+C5: Mandatory Completion Rule
+ - Regular users cannot access dashboard features without completing baseline
+ - System must enforce this by checking baseline_assessments on every protected page
+ - Only admins are exempt from this requirement
+
+C6: One-Time Requirement Rule
+ - Baseline questionnaire is only required once per user
+ - After completion, user can access dashboard on subsequent logins
+ - Users can take additional questionnaires later, but they are optional
+
+
+================================================================================
+SYSTEM FLOW SUMMARY
+================================================================================
+
+First-Time User Flow:
+1. User registers → UC01_REGISTRATION
+2. User logs in → UC02_LOGIN
+3. System detects no baseline → UC03_BASELINE_QUESTIONNAIRE (mandatory)
+4. User completes baseline → Redirects to Dashboard
+5. Subsequent logins → Direct to Dashboard
+
+Returning User Flow:
+1. User logs in → UC02_LOGIN
+2. System detects existing baseline → Direct to Dashboard
+
+Administrator Flow:
+1. Admin logs in → UC02_LOGIN
+2. System detects admin role → Direct to Admin Dashboard (baseline not required)
+
+
+================================================================================
+
+
+
+Use Case 1: Play Game
+USE CASE NAME
+UC01_PLAY_GAME
+USE CASE DESCRIPTION
+This use case describes how user selects and plays a cognitive training game from the displayed game library
+PRE CONDITION
+User is logged in
+POST-CONDITION
+System saves game score and updates game statistics
+
+
+
+BASIC FLOW
+Senior
+System
+This use case begins by user clicking games on the navigation bar
+The system displays the Cognitive Training Games menu showing all available games. [M1: Msg Show Games]
+User selects a game by clicking
+[A1: User clicks nothing and leaves the Games page]
+- Difficulty button (Easy/Medium/Hard), OR
+- Play Now button
+System loads selected game [C2: Game-Specific Difficulty]
+User plays game
+System auto-calculates and saves score [M3: Msg Game Complete]
+System updates game stats [M4: Msg Stats Updated]
+System displays results page
+Alternate Flow
+A1: User clicks nothing and leaves the Games page
+A1.1: System remains idle. No changes made
+Message
+M1: Msg Game List = {Please choose a game to play}
+M2: Msg Game Complete = {Game complete! Your score has been saved.}
+M3: Msg Stats Updated = {Your game statistics have been updated.}
+M4: Msg Leaderboard Updated = {Your ranking has been updated!}
+Constraint
+C1: Auto Save Rule
+Game score must be automatically saved immediately after the game ends.
+
+C2: Game-Specific Difficulty
+Some games support difficulty selection (Easy/Medium/Hard):
+- Memory Match, Attention Focus, Reaction Time, Puzzle Solver
+Other games have fixed difficulty with adaptive progression:
+- Card Flip Memory, Number Memory, Chimp Test
+
+C3: Stats Update Formula
+User statistics must be updated as:
+Times Played = Times Played + 1
+If Score > Best Score -> Best Score = Score
+Average Score = Total Score / Times Played
+
+C4: Valid Game Launch Action
+User may start a game through either:
+- Difficulty button (Easy/Medium/Hard) - for games with difficulty selection
+- Play Now button - for games with adaptive difficulty
+- Both options redirect to the game's play page with appropriate parameters
+
+C5: Game Result Persistence
+System must save the following data after each game:
+- User ID, Game Type, Difficulty, Score, Duration
+- Additional game-specific metrics (accuracy, level reached, reaction time, etc.)
+- Leaderboard ranking and percentile calculation
+

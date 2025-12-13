@@ -26,8 +26,8 @@ $settings = ['starting_numbers' => 4, 'grid_size' => 5, 'hide_delay' => 1500];
             <div class="value" id="level">1</div>
         </div>
         <div class="info-box">
-            <div class="label">Numbers</div>
-            <div class="value" id="numbers">0</div>
+            <div class="label">Score</div>
+            <div class="value" id="score">0</div>
         </div>
         <div class="info-box">
             <div class="label">Strikes</div>
@@ -46,8 +46,8 @@ $settings = ['starting_numbers' => 4, 'grid_size' => 5, 'hide_delay' => 1500];
         </ul>
     </div>
     
-    <div id="game-area" style="margin: 30px auto; max-width: 600px;">
-        <div id="chimp-grid" style="display: grid; gap: 10px; aspect-ratio: 1; background: #333; padding: 10px; border-radius: 10px;"></div>
+    <div id="game-area" style="margin: 30px auto; max-width: 700px;">
+        <div id="chimp-grid" style="display: grid; gap: 15px; aspect-ratio: 1; background: #333; padding: 20px; border-radius: 10px;"></div>
     </div>
     
     <div class="message" id="message"></div>

@@ -150,19 +150,61 @@ $answer_formats = [
 ];
 
 require_once __DIR__ . '/../../_header.php';
+
+// Check if this is a baseline questionnaire
+$isBaseline = isset($_GET['baseline']) && $_GET['baseline'] == '1';
 ?>
 
 <link rel="stylesheet" href="/assets/css/questionnaire.css">
 
+<?php if ($isBaseline): ?>
+<style>
+    .baseline-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .baseline-header h2 {
+        margin: 0 0 10px 0;
+    }
+    .question-card.unanswered {
+        border: 2px solid #f44336;
+        animation: shake 0.5s;
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+
+<div class="baseline-header">
+    <h2>📋 Baseline Mental Health Assessment</h2>
+    <p>Please answer all questions honestly. Your responses are confidential and will help us provide better support.</p>
+</div>
+
+<script>
+    // A2: User Navigates Away - prevent navigation during baseline
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = 'You must complete the baseline assessment before accessing the dashboard.';
+        return e.returnValue;
+    });
+</script>
+<?php else: ?>
+<div style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <strong>ℹ️ Note:</strong> This questionnaire uses validated clinical assessment questions. Your responses are confidential and help track your mental wellness over time.
+</div>
+<?php endif; ?>
 <div class="questionnaire-container">
-    <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <strong>ℹ️ Note:</strong> This questionnaire uses validated clinical assessment questions. Your responses are confidential and help track your mental wellness over time.
-    </div>
     
     <h1 style="text-align: center;"><?php echo $current_q['title']; ?></h1>
     <p style="text-align: center; color: #666; margin-bottom: 30px;"><?php echo $current_q['description']; ?></p>
     
-    <form method="POST" action="questionnaire_result.php">
+    <form method="POST" action="questionnaire_result.php" id="questionnaireForm">
         <input type="hidden" name="questionnaire_type" value="<?php echo $questionnaire_type; ?>">
         <input type="hidden" name="format" value="<?php echo $current_q['format']; ?>">
         <?php if (isset($_GET['baseline'])): ?>
@@ -173,7 +215,7 @@ require_once __DIR__ . '/../../_header.php';
         $answers = $answer_formats[$current_q['format']];
         foreach ($current_q['questions'] as $index => $question): 
         ?>
-            <div class="question-card">
+            <div class="question-card" id="question-<?php echo $index; ?>">
                 <div class="question"><?php echo ($index + 1) . '. ' . $question; ?></div>
                 <div class="answer-options">
                     <?php foreach ($answers as $answer): ?>
@@ -186,14 +228,55 @@ require_once __DIR__ . '/../../_header.php';
             </div>
         <?php endforeach; ?>
         
+        <div id="error-message" style="display: none; background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold;">
+            ⚠️ Please answer all questions before submitting.
+        </div>
+        
         <button type="submit" class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 20px;">
-            ✅ Submit Questionnaire
+            ✅ Submit Assessment
         </button>
     </form>
     
+    <?php if (!$isBaseline): ?>
     <div style="text-align: center; margin-top: 20px;">
         <a href="../diary.php" class="btn btn-secondary">← Back to Diary</a>
     </div>
+    <?php endif; ?>
 </div>
 
-<?php require_once __DIR__ . '/../../_footer.php'; ?>
+<script>
+// A1: Incomplete Answers - validate all questions answered
+document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
+    const form = this;
+    const questionCards = document.querySelectorAll('.question-card');
+    let allAnswered = true;
+    let firstUnanswered = null;
+    
+    questionCards.forEach((card, index) => {
+        const radios = form.querySelectorAll(`input[name="q${index}"]`);
+        const isAnswered = Array.from(radios).some(radio => radio.checked);
+        
+        card.classList.remove('unanswered');
+        
+        if (!isAnswered) {
+            allAnswered = false;
+            card.classList.add('unanswered');
+            if (!firstUnanswered) {
+                firstUnanswered = card;
+            }
+        }
+    });
+    
+    if (!allAnswered) {
+        e.preventDefault();
+        document.getElementById('error-message').style.display = 'block';
+        if (firstUnanswered) {
+            firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return false;
+    }
+    
+    // Remove beforeunload handler when form is validly submitted
+    window.removeEventListener('beforeunload', arguments.callee);
+});
+</script>

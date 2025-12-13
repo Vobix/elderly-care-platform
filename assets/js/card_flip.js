@@ -1,16 +1,18 @@
 // Card Flip Pattern Matching Game Logic
 
-let currentLevel = 1;
 let currentDifficulty = 'easy';
 let gridRows, gridCols, totalPairs;
 let cards = [];
 let flippedCards = [];
 let matchedPairs = 0;
-let moves = 0;
-let maxMoves = 30;
+let movesRemaining = 15;
+let score = 1000; // Starting score
 let gameStartTime;
 let canFlip = true;
-let bestScore = 0;
+
+// Scoring constants
+const PENALTY_PER_MISS = 50; // Points deducted for wrong match
+const TIME_BONUS_MULTIPLIER = 10; // Bonus points per second saved
 
 // Card symbols (emojis)
 const SYMBOLS = [
@@ -22,9 +24,9 @@ const SYMBOLS = [
 
 function startGame(difficulty) {
     currentDifficulty = difficulty;
-    currentLevel = 1;
     matchedPairs = 0;
-    moves = 0;
+    movesRemaining = 15;
+    score = 1000;
     gameStartTime = Date.now();
     
     // Set grid size based on difficulty
@@ -32,17 +34,14 @@ function startGame(difficulty) {
         case 'easy':
             gridRows = 4;
             gridCols = 4;
-            maxMoves = 35;
             break;
         case 'medium':
             gridRows = 4;
             gridCols = 5;
-            maxMoves = 40;
             break;
         case 'hard':
             gridRows = 4;
             gridCols = 6;
-            maxMoves = 45;
             break;
     }
     
@@ -110,8 +109,6 @@ function flipCard(cardElement, symbol, index) {
     flippedCards.push({ element: cardElement, symbol, index });
     
     if (flippedCards.length === 2) {
-        moves++;
-        updateDisplay();
         checkMatch();
     }
 }
@@ -122,7 +119,7 @@ function checkMatch() {
     const [card1, card2] = flippedCards;
     
     if (card1.symbol === card2.symbol && card1.index !== card2.index) {
-        // Match found!
+        // Match found! No move penalty, no score deduction
         setTimeout(() => {
             card1.element.classList.add('matched');
             card2.element.classList.add('matched');
@@ -137,83 +134,85 @@ function checkMatch() {
             
             // Check if game is won
             if (matchedPairs === totalPairs) {
-                setTimeout(() => winLevel(), 500);
+                setTimeout(() => winGame(), 500);
             }
         }, 500);
     } else {
-        // No match
+        // No match - deduct move and points
+        movesRemaining--;
+        score = Math.max(0, score - PENALTY_PER_MISS); // Score can't go negative
+        
         setTimeout(() => {
             card1.element.classList.remove('flipped');
             card2.element.classList.remove('flipped');
             flippedCards = [];
             canFlip = true;
             
+            updateDisplay();
+            
             // Check if out of moves
-            if (moves >= maxMoves) {
+            if (movesRemaining <= 0) {
                 gameOver();
             }
         }, 1000);
     }
 }
 
-function winLevel() {
-    const movesLeft = maxMoves - moves;
-    const score = (matchedPairs * 100) + (movesLeft * 10);
+function winGame() {
+    const duration = (Date.now() - gameStartTime) / 1000; // Time in seconds
     
-    if (score > bestScore) {
-        bestScore = score;
-        document.getElementById('best').textContent = bestScore;
-    }
+    // Calculate time bonus: faster = more points
+    const timeBonus = Math.max(0, Math.floor((120 - duration) * TIME_BONUS_MULTIPLIER)); // Bonus for finishing under 2 minutes
+    const finalScore = score + timeBonus;
     
-    document.getElementById('game-over-title').textContent = '🎉 Level Complete!';
+    document.getElementById('game-over-title').textContent = '🎉 Perfect Match!';
     document.getElementById('game-over-message').textContent = 
-        `You matched all ${totalPairs} pairs in ${moves} moves! Score: ${score}`;
+        `You matched all ${totalPairs} pairs!\n` +
+        `Time: ${duration.toFixed(1)}s\n` +
+        `Base Score: ${score}\n` +
+        `Time Bonus: +${timeBonus}\n` +
+        `Final Score: ${finalScore}`;
     document.getElementById('game-over-overlay').style.display = 'flex';
+    
+    // Auto-submit after showing message
+    setTimeout(() => endGame(finalScore, duration), 2000);
 }
 
 function gameOver() {
     canFlip = false;
+    const duration = (Date.now() - gameStartTime) / 1000;
+    
     document.getElementById('game-over-title').textContent = '😢 Out of Moves!';
     document.getElementById('game-over-message').textContent = 
-        `You ran out of moves! Try again or choose a different difficulty.`;
+        `You ran out of moves! You matched ${matchedPairs}/${totalPairs} pairs.\n` +
+        `Final Score: ${score}`;
     document.getElementById('game-over-overlay').style.display = 'flex';
-    document.querySelector('.game-over-content button').textContent = 'Try Again';
-}
-
-function nextLevel() {
-    currentLevel++;
-    matchedPairs = 0;
-    moves = 0;
-    flippedCards = [];
-    canFlip = false;
     
-    // Decrease max moves slightly for more challenge
-    maxMoves = Math.max(20, maxMoves - 2);
-    
-    document.getElementById('game-over-overlay').style.display = 'none';
-    updateDisplay();
-    createBoard();
+    // Auto-submit with current score
+    setTimeout(() => endGame(score, duration), 2000);
 }
 
 function restartGame() {
     matchedPairs = 0;
-    moves = 0;
+    movesRemaining = 15;
+    score = 1000;
     flippedCards = [];
     canFlip = false;
+    gameStartTime = Date.now();
     updateDisplay();
     createBoard();
 }
 
 function updateDisplay() {
-    document.getElementById('level').textContent = currentLevel;
+    document.getElementById('level').textContent = '1'; // Only 1 level
     document.getElementById('pairs').textContent = `${matchedPairs}/${totalPairs}`;
-    document.getElementById('moves').textContent = moves;
-    document.getElementById('moves-remaining').textContent = maxMoves - moves;
+    document.getElementById('moves').textContent = `Score: ${score}`;
+    document.getElementById('moves-remaining').textContent = movesRemaining;
     
-    const remaining = maxMoves - moves;
-    if (remaining <= 5) {
+    // Color code moves remaining
+    if (movesRemaining <= 3) {
         document.getElementById('moves-remaining').style.color = '#f44336';
-    } else if (remaining <= 10) {
+    } else if (movesRemaining <= 7) {
         document.getElementById('moves-remaining').style.color = '#FF9800';
     } else {
         document.getElementById('moves-remaining').style.color = '#667eea';
@@ -228,21 +227,35 @@ function shuffleArray(array) {
     return array;
 }
 
-function endGame() {
-    const duration = (Date.now() - gameStartTime) / 1000;
-    const totalScore = bestScore;
-    const accuracy = (matchedPairs / totalPairs) * 100;
+function endGame(finalScore, duration) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '../game_result.php';
     
-    document.getElementById('final-difficulty').value = currentDifficulty;
-    document.getElementById('final-score').value = totalScore;
-    document.getElementById('final-duration').value = duration;
-    document.getElementById('final-attempts').value = currentLevel;
-    document.getElementById('final-accuracy').value = accuracy;
+    const fields = {
+        'game_id': 'card_flip',
+        'score': Math.round(finalScore),
+        'duration': Math.round(duration),
+        'accuracy': matchedPairs === totalPairs ? '100' : Math.round((matchedPairs / totalPairs) * 100),
+        'difficulty': difficulty
+    };
     
-    document.getElementById('result-form').submit();
+    for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
 }
 
-// Allow ending game from overlay
+// Allow restarting game from overlay
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.game-over-content .secondary')?.addEventListener('click', endGame);
+    document.querySelector('.game-over-content button')?.addEventListener('click', () => {
+        document.getElementById('game-over-overlay').style.display = 'none';
+        restartGame();
+    });
 });

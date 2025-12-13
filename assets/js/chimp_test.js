@@ -11,6 +11,7 @@ let totalAttempts = 0;
 let correctAttempts = 0;
 let score = 0;
 let gridSize;
+let hideDelay = 3000; // Starting delay in ms
 
 function startGame() {
     currentLevel = 1;
@@ -18,6 +19,7 @@ function startGame() {
     totalAttempts = 0;
     correctAttempts = 0;
     score = 0;
+    hideDelay = 3000;
     gameStartTime = Date.now();
     numNumbers = CONFIG.starting_numbers;
     gridSize = CONFIG.grid_size;
@@ -88,29 +90,52 @@ function placeNumbers() {
         cell.classList.add('has-number');
         cell.onclick = () => handleNumberClick(number, cell);
     });
+    
+    // Auto-hide numbers after delay (gets faster each level)
+    setTimeout(() => {
+        if (!numbersHidden && canClick) {
+            numbersHidden = true;
+            document.querySelectorAll('.chimp-cell.has-number').forEach(c => {
+                c.classList.add('flip-hide');
+                setTimeout(() => {
+                    c.textContent = '';
+                    c.classList.add('hidden-number');
+                    c.classList.remove('flip-hide');
+                }, 300);
+            });
+            document.getElementById('message').textContent = 'Click them in order!';
+        }
+    }, hideDelay);
 }
 
 function handleNumberClick(number, cell) {
     if (!canClick) return;
     
-    // First click - hide all other numbers
-    if (number === 1 && !numbersHidden) {
+    // First click - immediately hide all numbers
+    if (!numbersHidden) {
         numbersHidden = true;
         document.querySelectorAll('.chimp-cell.has-number').forEach(c => {
-            if (c !== cell) {
-                c.textContent = '';
-                c.classList.add('hidden-number');
-            }
+            c.textContent = ''; // Remove number immediately before flip
+            c.classList.add('flip-hide');
+            setTimeout(() => {
+                if (!c.classList.contains('correct-click')) {
+                    c.classList.add('hidden-number');
+                }
+                c.classList.remove('flip-hide');
+            }, 300);
         });
-        document.getElementById('message').textContent = 'Keep going...';
+        document.getElementById('message').textContent = 'Click them in order!';
     }
     
     // Check if correct number
     if (number === nextExpectedNumber) {
-        cell.classList.add('correct-click');
-        cell.classList.remove('has-number', 'hidden-number');
-        cell.textContent = '✓';
-        cell.onclick = null;
+        cell.classList.add('flipped');
+        setTimeout(() => {
+            cell.classList.add('correct-click');
+            cell.classList.remove('has-number', 'hidden-number');
+            cell.textContent = '✓';
+            cell.onclick = null;
+        }, 300);
         
         nextExpectedNumber++;
         
@@ -118,11 +143,17 @@ function handleNumberClick(number, cell) {
         if (nextExpectedNumber > numNumbers) {
             canClick = false;
             correctAttempts++;
-            score += numNumbers * 10;
+            score += currentLevel * 100; // Level-based scoring: level 1 = 100, level 2 = 200, etc.
             currentLevel++;
             numNumbers++;
             
-            document.getElementById('message').textContent = `✅ Perfect! Level ${currentLevel} unlocked!`;
+            // Ramp up difficulty: decrease hide delay from 3s to 1s minimum
+            if (currentLevel === 2) hideDelay = 2500;
+            else if (currentLevel === 3) hideDelay = 2000;
+            else if (currentLevel === 4) hideDelay = 1500;
+            else if (currentLevel >= 5) hideDelay = 1000;
+            
+            document.getElementById('message').textContent = `✅ Perfect! Level ${currentLevel} unlocked! +${(currentLevel - 1) * 100} points`;
             document.getElementById('message').className = 'message correct';
             document.getElementById('next-btn').style.display = 'inline-block';
         }
@@ -131,7 +162,10 @@ function handleNumberClick(number, cell) {
         canClick = false;
         strikes++;
         
-        cell.classList.add('wrong-click');
+        cell.classList.add('flipped');
+        setTimeout(() => {
+            cell.classList.add('wrong-click');
+        }, 300);
         
         // Show all numbers to reveal mistake
         document.querySelectorAll('.chimp-cell.hidden-number').forEach(c => {
@@ -155,7 +189,7 @@ function handleNumberClick(number, cell) {
 
 function updateDisplay() {
     document.getElementById('level').textContent = currentLevel;
-    document.getElementById('numbers').textContent = numNumbers;
+    document.getElementById('score').textContent = score;
     document.getElementById('strikes').textContent = `${strikes}/3`;
 }
 
