@@ -103,6 +103,13 @@ $pageTitle = "User Details: " . htmlspecialchars($user['username']);
                 <a href="/pages/admin/analytics.php" class="nav-item">
                     <span class="icon">📈</span> System Analytics
                 </a>
+                <hr>
+                <a href="/pages/insights/dashboard.php" class="nav-item">
+                    <span class="icon">👤</span> User View
+                </a>
+                <a href="/pages/account/logout.php" class="nav-item">
+                    <span class="icon">🚪</span> Logout
+                </a>
             </nav>
         </div>
 

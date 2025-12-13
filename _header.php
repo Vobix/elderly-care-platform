@@ -58,9 +58,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
             
             <?php if (isset($_SESSION['user_id'])): ?>
                 <ul class="nav-menu">
+                    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+                        <!-- Admin has access to both sides -->
+                        <li><a href="/pages/admin/index.php" class="<?php echo strpos($_SERVER['REQUEST_URI'], '/admin/') !== false ? 'active' : ''; ?>" style="background: #667eea; color: white; padding: 8px 12px; border-radius: 5px;">⚙️ Admin Panel</a></li>
+                    <?php endif; ?>
                     <li><a href="/pages/insights/dashboard.php" class="<?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">📊 Dashboard</a></li>
                     <li><a href="/pages/games.php" class="<?php echo $current_page === 'games.php' ? 'active' : ''; ?>">🎮 Games</a></li>
                     <li><a href="/pages/emotion/mood.php" class="<?php echo $current_page === 'mood.php' ? 'active' : ''; ?>">😊 Mood</a></li>
+                    <li><a href="/pages/insights/questionnaire_insights.php" class="<?php echo $current_page === 'questionnaire_insights.php' ? 'active' : ''; ?>">📋 Assessments</a></li>
                     <li><a href="/pages/diary.php" class="<?php echo $current_page === 'diary.php' ? 'active' : ''; ?>">📔 Diary</a></li>
                     <li><a href="/pages/account/profile.php" class="<?php echo $current_page === 'profile.php' ? 'active' : ''; ?>">👤 Profile</a></li>
                     <li><a href="/pages/account/logout.php">🚪 Logout</a></li>
