@@ -68,8 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $username;
             $_SESSION['last_activity'] = time();
             
-            // Redirect to baseline assessment (PHQ-9 questionnaire)
-            header("Location: /pages/emotion/questionnaire.php?type=PHQ9&baseline=1");
+            // Redirect to baseline assessment selection (user chooses PHQ-9, GAD-7, or GDS-15)
+            header("Location: /pages/emotion/baseline_selection.php");
             exit();
             
         } catch (Exception $e) {

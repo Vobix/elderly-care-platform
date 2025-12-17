@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/../database/config.php';
         
         try {
-            $stmt = $pdo->prepare("SELECT user_id, username, email, password, is_admin, is_active, has_completed_initial_assessment FROM users WHERE email = ?");
+            $stmt = $pdo->prepare("SELECT user_id, username, email, password, is_admin, is_active FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
@@ -65,19 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("UPDATE users SET last_login_at = NOW() WHERE user_id = ?");
                     $stmt->execute([$user['user_id']]);
                     
-                    // Redirect based on role - admins don't need baseline assessment
+                    // Redirect based on role - admins don't need baseline assessment (C1: Admin Bypass Rule)
                     if ($user['is_admin']) {
                         header("Location: /pages/admin/index.php");
                         exit();
                     }
                     
-                    // Check if regular user needs to complete baseline assessment
-                    if (!$user['has_completed_initial_assessment']) {
-                        header("Location: /pages/emotion/questionnaire.php?type=PHQ9&baseline=1");
+                    // Check baseline_assessments table for regular users (C2: Baseline Check Rule)
+                    $stmt = $pdo->prepare("SELECT baseline_id FROM baseline_assessments WHERE user_id = ? LIMIT 1");
+                    $stmt->execute([$user['user_id']]);
+                    $hasBaseline = $stmt->fetchColumn();
+                    
+                    if (!$hasBaseline) {
+                        // First-time user - redirect to baseline selection (C4: First-Time User Rule)
+                        header("Location: /pages/emotion/baseline_selection.php");
                         exit();
                     }
                     
-                    // Regular user redirect
+                    // Returning user - redirect to dashboard
                     header("Location: /pages/insights/dashboard.php");
                     exit();
                 }
