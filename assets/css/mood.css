@@ -40,10 +40,11 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .mood-button:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
@@ -57,27 +58,84 @@
     pointer-events: none;
 }
 
-.mood-button input[type="radio"]:checked + .emoji-display {
-    animation: bounce 0.5s;
-}
-
-.mood-button input[type="radio"]:checked ~ .mood-label {
-    font-weight: bold;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-}
-
+/* ENHANCED: Much clearer selected state */
 .mood-button.selected {
     border-width: 6px;
+    transform: scale(1.15);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    position: relative;
 }
 
+/* Add a checkmark overlay when selected */
+.mood-button.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    animation: checkmark-pop 0.3s ease-out;
+}
+
+@keyframes checkmark-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Pulse animation for selected mood */
+.mood-button.selected .emoji-display {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Enhanced label styling when selected */
 .mood-label {
     margin-top: 10px;
     font-size: 18px;
     font-weight: 600;
+    transition: all 0.3s;
+}
+
+.mood-button.selected ~ .mood-label {
+    font-weight: 900;
+    font-size: 20px;
+    color: #4CAF50;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Dim unselected options when one is selected */
+.mood-scale:has(.mood-button.selected) .mood-option:not(:has(.selected)) {
+    opacity: 0.5;
+}
+
+.mood-scale:has(.mood-button.selected) .mood-option:not(:has(.selected)) .mood-button {
+    transform: scale(0.95);
 }
 
 .notes-area {
@@ -151,7 +209,8 @@
     background: white;
     padding: 20px;
     border-radius: 10px;
-    border-left: 5px solid;
+    border-left: none;
+    background: linear-gradient(to right, var(--mood-color, #ddd) 20%, transparent);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -179,6 +238,21 @@
 .high-contrast .mood-button {
     background: #000;
     border-color: #ffff00;
+}
+
+.high-contrast .mood-button.selected {
+    background: #003300;
+    border-color: #00ff00;
+    border-width: 8px;
+}
+
+.high-contrast .mood-button.selected::after {
+    background: #00ff00;
+    color: #000;
+}
+
+.high-contrast .mood-button.selected ~ .mood-label {
+    color: #00ff00;
 }
 
 .high-contrast .notes-area textarea {

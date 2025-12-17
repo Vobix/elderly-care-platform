@@ -87,34 +87,185 @@
     font-size: 18px;
 }
 
-/* High Contrast Mode */
+/* HIGH CONTRAST MODE*/
+
 .high-contrast .result-header {
-    background: #000;
+    background: #000 !important;
     border: 3px solid #ffff00;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+.high-contrast .result-header h1,
+.high-contrast .result-header .performance {
+    color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
 
 .high-contrast .score-display {
-    color: #ffff00;
+    color: #00ff00;
+    text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
 }
 
 .high-contrast .stat-card {
-    background: #1a1a1a;
+    background: #1a1a1a !important;
     border: 2px solid #ffff00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
 }
 
 .high-contrast .stat-card .label {
-    color: #ccc;
+    color: #ffffff;
 }
 
 .high-contrast .stat-card .value {
-    color: #ffff00;
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 .high-contrast .comparison {
-    background: #003366;
+    background: #1a1a1a !important;
     border: 2px solid #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
 }
 
 .high-contrast .comparison h3 {
     color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+/* Ranking Section */
+.high-contrast .ranking-section {
+    background: #000 !important;
+    border: 3px solid #ffff00 !important;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3) !important;
+}
+
+.high-contrast .ranking-section h3 {
+    color: #ffff00 !important;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5) !important;
+}
+
+.high-contrast .ranking-section > div {
+    color: #ffffff !important;
+}
+
+.high-contrast .ranking-section > div:nth-child(2) {
+    /* Rank number */
+    color: #00ff00 !important;
+    text-shadow: 0 0 15px rgba(0, 255, 0, 0.5) !important;
+}
+
+.high-contrast .ranking-section > div:nth-child(4) {
+    /* Top percentage box */
+    background: #1a1a1a !important;
+    border: 2px solid #00ff00 !important;
+    color: #00ff00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
+}
+
+/* Leaderboard Section */
+.high-contrast .leaderboard-section h3 {
+    color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+}
+
+.high-contrast .leaderboard-section > div {
+    background: #000 !important;
+    border: 3px solid #00ffff !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+}
+
+.high-contrast .leaderboard-section table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.high-contrast .leaderboard-section thead {
+    background: #1a1a1a !important;
+    border-bottom: 2px solid #ffff00 !important;
+}
+
+.high-contrast .leaderboard-section thead th {
+    color: #ffff00 !important;
+    border-bottom: 2px solid #ffff00 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 5px rgba(255, 255, 0, 0.3) !important;
+}
+
+.high-contrast .leaderboard-section tbody tr {
+    background: #000 !important;
+    border-top: 1px solid #444 !important;
+}
+
+.high-contrast .leaderboard-section tbody tr:hover {
+    background: #1a1a1a !important;
+    border-top: 1px solid #00ffff !important;
+    border-bottom: 1px solid #00ffff !important;
+}
+
+.high-contrast .leaderboard-section tbody tr[style*="background: #fff3cd"] {
+    /* Current user row */
+    background: #003300 !important;
+    border: 2px solid #00ff00 !important;
+}
+
+.high-contrast .leaderboard-section tbody tr[style*="background: #fff3cd"]:hover {
+    background: #004400 !important;
+}
+
+.high-contrast .leaderboard-section tbody td {
+    color: #ffffff !important;
+    border-top: 1px solid #444 !important;
+}
+
+.high-contrast .leaderboard-section tbody td:first-child {
+    /* Rank column */
+    color: #ffff00 !important;
+    font-weight: bold !important;
+}
+
+.high-contrast .leaderboard-section tbody td:nth-child(3) {
+    /* Score column */
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3) !important;
+}
+
+.high-contrast .leaderboard-section tbody td span {
+    /* (You) indicator */
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3) !important;
+}
+
+/* Action Buttons */
+.high-contrast .action-buttons .btn {
+    background: #000 !important;
+    border: 3px solid #ffff00 !important;
+    color: #ffff00 !important;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3) !important;
+    font-weight: bold !important;
+}
+
+.high-contrast .action-buttons .btn:hover {
+    background: #1a1a1a !important;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.5) !important;
+    transform: scale(1.05);
+}
+
+.high-contrast .action-buttons .btn-primary {
+    border-color: #00ff00 !important;
+    color: #00ff00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
+}
+
+.high-contrast .action-buttons .btn-primary:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5) !important;
+}
+
+.high-contrast .action-buttons .btn-success {
+    border-color: #00ffff !important;
+    color: #00ffff !important;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3) !important;
+}
+
+.high-contrast .action-buttons .btn-success:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5) !important;
 }

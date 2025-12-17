@@ -7,7 +7,7 @@ $page_title = "Health Questionnaire";
 require_once __DIR__ . '/../account/auth.php';
 require_once __DIR__ . '/../../_header.php';
 
-$questionnaire_type = $_GET['type'] ?? 'wellness';
+$questionnaire_type = $_GET['type'] ?? 'wellbeing';
 
 // Define questions based on validated mental health scales
 // Questions are randomized from larger pools of validated assessment items
@@ -88,22 +88,22 @@ $sleep_questions = [
 
 $questionnaires = [
     'depression' => [
-        'title' => 'Depression Screening (GDS-15 Based)',
-        'description' => 'These questions are based on the validated Geriatric Depression Scale. Answer honestly about how you\'ve felt recently.',
-        'questions' => array_rand(array_flip($gds_questions), 10), // Random 10 from GDS pool
-        'format' => 'yes_no'
+    'title' => 'Depression Screening (GDS-15 Based)',
+    'description' => 'These questions are based on the validated Geriatric Depression Scale. Answer honestly about how you\'ve felt recently.',
+    'questions' => $gds_questions, // Use all GDS questions
+    'format' => 'yes_no'
     ],
     'mood' => [
-        'title' => 'Mood Assessment (PHQ-9 Based)',
-        'description' => 'Over the last 2 weeks, how often have you been bothered by the following problems?',
-        'questions' => array_rand(array_flip($phq9_questions), 7), // Random 7 from PHQ-9
-        'format' => 'frequency'
+    'title' => 'Mood Assessment (PHQ-9 Based)',
+    'description' => 'Over the last 2 weeks, how often have you been bothered by the following problems?',
+    'questions' => $phq9_questions, // Use all PHQ-9 questions
+    'format' => 'frequency'
     ],
     'anxiety' => [
-        'title' => 'Anxiety Screening (GAD-7 Based)',
-        'description' => 'Over the last 2 weeks, how often have you been bothered by the following?',
-        'questions' => array_rand(array_flip($gad7_questions), 5), // Random 5 from GAD-7
-        'format' => 'frequency'
+    'title' => 'Anxiety Screening (GAD-7 Based)',
+    'description' => 'Over the last 2 weeks, how often have you been bothered by the following?',
+    'questions' => $gad7_questions, // Use all GAD-7 questions
+    'format' => 'frequency'
     ],
     'stress' => [
         'title' => 'Stress Assessment (PSS-4)',

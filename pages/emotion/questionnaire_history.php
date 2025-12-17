@@ -285,7 +285,7 @@ foreach ($results_by_type as $type => $results) {
         <?php endforeach; ?>
         
         <div style="text-align: center; padding: 40px 0;">
-            <a href="questionnaire.php" class="take-questionnaire-btn">📋 Take Another Questionnaire</a>
+            <a href="questionnaire_selection.php" class="take-questionnaire-btn">📋 Take Another Questionnaire</a>
         </div>
         
     <?php endif; ?>

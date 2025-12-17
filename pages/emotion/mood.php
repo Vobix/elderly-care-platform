@@ -110,7 +110,8 @@ require_once __DIR__ . '/../../_header.php';
             <h2>Today's Mood</h2>
             <div class="emoji"><?php echo $mood_data[$today_mood['mood_value']]['emoji']; ?></div>
             <h3><?php echo $mood_data[$today_mood['mood_value']]['label']; ?></h3>
-            <p style="margin-top: 15px; color: #666;">Logged on <?php echo date('F j, Y', strtotime($today_mood['entry_date'])); ?></p>
+            <p style="margin-top: 15px; color: #666;">Logged on <?php echo date('F j, Y', strtotime($today_mood['created_at'])); ?></p>
+            
             <?php if (!empty($today_mood['mood_text'])): ?>
                 <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left;">
                     <strong>Your note:</strong> <?php echo htmlspecialchars($today_mood['mood_text']); ?>
@@ -155,11 +156,11 @@ require_once __DIR__ . '/../../_header.php';
             <h3>📅 Recent Mood History</h3>
             <div class="mood-history">
                 <?php foreach ($recent_moods as $mood): ?>
-                    <div class="mood-entry" style="border-left-color: <?php echo $mood_data[$mood['mood_value']]['color']; ?>;">
+                    <div class="mood-entry" style="background: linear-gradient(to right, <?php echo $mood_data[$mood['mood_value']]['color']; ?>20, transparent);">
                         <div class="emoji"><?php echo $mood_data[$mood['mood_value']]['emoji']; ?></div>
                         <div class="details">
                             <strong><?php echo $mood_data[$mood['mood_value']]['label']; ?></strong>
-                            <div class="date"><?php echo date('F j, Y', strtotime($mood['entry_date'])); ?></div>
+                            <div class="date"><?php echo date('F j, Y', strtotime($mood['created_at'])); ?></div>
                             <?php if (!empty($mood['mood_text'])): ?>
                                 <p style="margin-top: 8px;"><?php echo htmlspecialchars($mood['mood_text']); ?></p>
                             <?php endif; ?>

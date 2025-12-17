@@ -114,35 +114,225 @@
     transform: translateY(-3px);
 }
 
-/* High Contrast Mode */
+/* HIGH CONTRAST MODE*/
+
+/* Dashboard Header */
+.high-contrast .dashboard-header .welcome {
+    color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+}
+
+.high-contrast .dashboard-header p {
+    color: #ffffff !important;
+}
+
+/* Insufficient Data Warning Box */
+.high-contrast div[style*="background: #fff3cd"] {
+    background: #1a1a1a !important;
+    border: 3px solid #ffff00 !important;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3) !important;
+}
+
+.high-contrast div[style*="background: #fff3cd"] h2 {
+    color: #ffff00 !important;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5) !important;
+}
+
+.high-contrast div[style*="background: #fff3cd"] p {
+    color: #ffffff !important;
+}
+
+.high-contrast div[style*="background: #fff3cd"] strong {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3) !important;
+}
+
+/* Stat Cards */
 .high-contrast .stat-card {
-    background: #1a1a1a;
+    background: #1a1a1a !important;
     border: 2px solid #ffff00;
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.2);
+}
+
+.high-contrast .stat-card:hover {
+    border-color: #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.high-contrast .stat-card .icon {
+    filter: brightness(1.5);
 }
 
 .high-contrast .stat-card .label {
-    color: #ccc;
+    color: #ffffff;
+    font-weight: bold;
 }
 
 .high-contrast .stat-card .value {
-    color: #ffff00;
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
 
+.high-contrast .stat-card div[style*="color: #667eea"] {
+    color: #00ffff !important;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3) !important;
+}
+
+/* Quick Action Buttons */
+.high-contrast .action-btn {
+    background: #000 !important;
+    border: 3px solid #ffff00;
+    color: #ffff00 !important;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+.high-contrast .action-btn:hover {
+    background: #1a1a1a !important;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* Section Boxes */
 .high-contrast .section {
-    background: #1a1a1a;
-    border: 2px solid #ffff00;
+    background: #000 !important;
+    border: 3px solid #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 .high-contrast .section h2 {
     color: #ffff00;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
 
+.high-contrast .section ul {
+    color: #ffffff;
+}
+
+.high-contrast .section ul li {
+    color: #ffffff;
+}
+
+.high-contrast .section a {
+    color: #00ffff;
+    text-decoration: underline;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+.high-contrast .section a:hover {
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* Mood Trend Bars */
+.high-contrast .mood-trend {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #444;
+}
+
+.high-contrast .mood-bar {
+    background: linear-gradient(to top, #00ff00, #00ffff) !important;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.high-contrast .mood-bar .label {
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 0 0 3px #000;
+}
+
+/* Game Items */
 .high-contrast .game-item {
-    background: #222;
+    background: #1a1a1a !important;
+    border: 2px solid #ffff00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
 }
 
-.high-contrast .action-btn {
-    background: #000;
-    border: 2px solid #ffff00;
+.high-contrast .game-item:hover {
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+.high-contrast .game-item strong {
     color: #ffff00;
+}
+
+.high-contrast .game-item div[style*="color: #666"] {
+    color: #cccccc !important;
+}
+
+.high-contrast .game-item div[style*="color: #667eea"] {
+    color: #00ff00 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
+}
+
+/* Recent Game Sessions */
+.high-contrast div[style*="padding: 15px; background: #f8f9fa"] {
+    background: #1a1a1a !important;
+    border: 2px solid #00ffff !important;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2) !important;
+}
+
+.high-contrast div[style*="padding: 15px; background: #f8f9fa"] strong {
+    color: #00ffff;
+}
+
+.high-contrast div[style*="padding: 15px; background: #f8f9fa"] span {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3) !important;
+}
+
+.high-contrast div[style*="padding: 15px; background: #f8f9fa"] div[style*="color: #666"] {
+    color: #ffffff !important;
+}
+
+/* Best Game Highlight Box */
+.high-contrast div[style*="background: #e3f2fd"] {
+    background: #003300 !important;
+    border: 2px solid #00ff00 !important;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3) !important;
+}
+
+.high-contrast div[style*="background: #e3f2fd"] strong {
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* Insights List Items */
+.high-contrast .section ul li {
+    line-height: 2.5;
+    color: #ffffff;
+}
+
+.high-contrast .section ul li::marker {
+    color: #ffff00;
+}
+
+/* Float Right Scores */
+.high-contrast span[style*="float: right"] {
+    color: #00ff00 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
+}
+
+/* General Text Color Fixes */
+.high-contrast div[style*="color: #666; font-size: 12px"] {
+    color: #ffffff !important;
+}
+
+.high-contrast div[style*="font-size: 12px; color: #666"] {
+    color: #ffffff !important;
+}
+
+.high-contrast div[style*="color: #666; font-size: 14px"] {
+    color: #cccccc !important;
+}
+
+.high-contrast div[style*="font-size: 14px; color: #666"] {
+    color: #cccccc !important;
+}
+
+.high-contrast div[style*="font-size: 18px; color: #666"] {
+    color: #ffffff !important;
 }

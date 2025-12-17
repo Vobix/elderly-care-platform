@@ -61,17 +61,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // Determine risk category based on score and questionnaire type
             $riskCategory = 'low';
-            if ($questionnaire_type === 'PHQ9') {
+            
+            // FIXED: Use lowercase questionnaire types to match the form submission
+            if ($questionnaire_type === 'mood') { // PHQ-9
                 if ($total_score >= 20) $riskCategory = 'critical';
                 elseif ($total_score >= 15) $riskCategory = 'high';
                 elseif ($total_score >= 10) $riskCategory = 'moderate';
-            } elseif ($questionnaire_type === 'GAD7') {
+            } elseif ($questionnaire_type === 'anxiety') { // GAD-7
                 if ($total_score >= 15) $riskCategory = 'critical';
                 elseif ($total_score >= 10) $riskCategory = 'high';
                 elseif ($total_score >= 5) $riskCategory = 'moderate';
-            } elseif ($questionnaire_type === 'GDS15') {
+            } elseif ($questionnaire_type === 'depression') { // GDS-15
                 if ($total_score >= 11) $riskCategory = 'high';
                 elseif ($total_score >= 5) $riskCategory = 'moderate';
+            } elseif ($questionnaire_type === 'stress') { // PSS-4
+                if ($total_score >= 12) $riskCategory = 'high';
+                elseif ($total_score >= 8) $riskCategory = 'moderate';
+            } elseif ($questionnaire_type === 'sleep') { // PSQI
+                if ($total_score >= 10) $riskCategory = 'high';
+                elseif ($total_score >= 5) $riskCategory = 'moderate';
+            } elseif ($questionnaire_type === 'wellbeing') { // WHO-5
+                // For wellbeing, higher is better - reverse the logic
+                if ($total_score <= 8) $riskCategory = 'high';
+                elseif ($total_score <= 13) $riskCategory = 'moderate';
             }
             
             // Get questionnaire ID
@@ -137,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 30px 0;">
             <strong>Your Score:</strong> <?php echo $total_score; ?> / <?php echo $max_score; ?><br>
-            <strong>Questions:</strong> <?php echo count($answers); ?>
+            <strong>Questions:</strong> <?php echo count($responses); ?>
         </div>
         
         <p style="color: #666; line-height: 1.8;">
@@ -158,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($isBaseline): ?>
         <a href="../insights/dashboard.php" class="btn btn-primary">🎉 Get Started</a>
         <?php else: ?>
-        <a href="questionnaire.php" class="btn btn-primary">📝 Take Another</a>
+        <a href="questionnaire_selection.php" class="btn btn-primary">📝 Take Another</a>
         <a href="questionnaire_history.php" class="btn btn-primary">📊 View History</a>
         <a href="../diary.php" class="btn btn-secondary">📔 View Diary</a>
         <a href="../insights/dashboard.php" class="btn btn-success">📊 Dashboard</a>
