@@ -31,36 +31,12 @@ foreach ($game_stats as $stat) {
 // Define available games
 $games = [
     [
-        'id' => 'memory',
-        'name' => 'Memory Match',
-        'icon' => '🧠',
-        'description' => 'Test your memory by remembering sequences of numbers or images.',
-        'benefits' => 'Improves short-term memory and concentration',
-        'color' => '#4CAF50'
-    ],
-    [
-        'id' => 'attention',
-        'name' => 'Attention Focus',
-        'icon' => '👁️',
-        'description' => 'Find specific patterns or objects among distractions.',
-        'benefits' => 'Enhances attention span and focus',
-        'color' => '#2196F3'
-    ],
-    [
         'id' => 'reaction',
         'name' => 'Reaction Time',
         'icon' => '⚡',
         'description' => 'Click as fast as you can when you see the target.',
         'benefits' => 'Improves reflexes and response speed',
         'color' => '#FF9800'
-    ],
-    [
-        'id' => 'puzzle',
-        'name' => 'Puzzle Solver',
-        'icon' => '🧩',
-        'description' => 'Complete patterns and solve visual puzzles.',
-        'benefits' => 'Boosts problem-solving and spatial reasoning',
-        'color' => '#9C27B0'
     ],
     [
         'id' => 'card_flip',
@@ -85,6 +61,22 @@ $games = [
         'description' => 'Click numbers in ascending order after they disappear.',
         'benefits' => 'Tests working memory and number sequencing',
         'color' => '#795548'
+    ],
+    [
+        'id' => 'tetris',
+        'name' => 'Tetris',
+        'icon' => '🟦',
+        'description' => 'Stack falling blocks to clear lines and score points.',
+        'benefits' => 'Improves spatial reasoning and quick decision making',
+        'color' => '#4CAF50'
+    ],
+    [
+        'id' => 'gem_match',
+        'name' => 'Gem Match',
+        'icon' => '💎',
+        'description' => 'Match 3 or more gems to clear them before time runs out.',
+        'benefits' => 'Enhances pattern recognition and quick thinking',
+        'color' => '#9C27B0'
     ]
 ];
 
@@ -101,7 +93,7 @@ require_once __DIR__ . '/../_header.php';
 <div class="games-grid">
     <?php foreach ($games as $game): 
         // New games without difficulty selection
-        $no_difficulty_games = ['card_flip', 'number_memory', 'chimp_test'];
+        $no_difficulty_games = ['card_flip', 'number_memory', 'chimp_test', 'tetris', 'gem_match', 'reaction'];
         $has_difficulty = !in_array($game['id'], $no_difficulty_games);
     ?>
         <div class="game-card" style="border-left-color: <?php echo $game['color']; ?>;">

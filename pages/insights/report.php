@@ -55,7 +55,7 @@ require_once __DIR__ . '/../../_header.php';
 <div class="report-container">
     <div class="report-header">
         <h1 style="margin: 0;">📊 Your Weekly Report</h1>
-        <p style="margin-top: 10px; font-size: 18px;"><?php echo date('F j') . ' - ' . date('F j, Y'); ?></p>
+        <p style="margin-top: 10px; font-size: 18px;"><?php echo date('F j', strtotime('-7 days')) . ' - ' . date('F j, Y'); ?></p>
     </div>
     
     <div class="metric-grid">

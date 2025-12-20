@@ -71,6 +71,13 @@ if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $stats_data = $gameService->getStats($user_id, $game_type);
 $stats = $stats_data;
 
+// Ensure stats has default values to prevent undefined key warnings
+if ($stats) {
+    $stats['times_played'] = $stats['times_played'] ?? 0;
+    $stats['average_score'] = $stats['average_score'] ?? 0;
+    $stats['best_score'] = $stats['best_score'] ?? 0;
+}
+
 // Game titles
 $game_titles = [
     'memory' => 'Memory Match',
@@ -79,10 +86,18 @@ $game_titles = [
     'puzzle' => 'Puzzle Solver',
     'card_flip' => 'Card Flip Memory',
     'chimp_test' => 'Chimp Test',
-    'number_memory' => 'Number Memory'
+    'number_memory' => 'Number Memory',
+    'tetris' => 'Tetris',
+    'gem_match' => 'Gem Match'
 ];
 
 $game_name = $game_titles[$game_type] ?? 'Game';
+
+// Define which games don't use certain features
+$no_difficulty_games = ['card_flip', 'number_memory', 'chimp_test', 'tetris', 'gem_match', 'reaction'];
+$no_duration_games = ['tetris', 'gem_match']; // Tetris is endless, gem_match is fixed 60s
+$has_difficulty = !in_array($game_type, $no_difficulty_games);
+$has_duration = !in_array($game_type, $no_duration_games);
 
 // Performance messages
 $performance_message = '';
@@ -114,17 +129,21 @@ require_once __DIR__ . '/../_header.php';
     
     <div class="result-header">
         <h1><?php echo htmlspecialchars($game_name); ?></h1>
+        <?php if ($has_difficulty): ?>
         <p style="font-size: 18px;">Difficulty: <?php echo ucfirst($difficulty); ?></p>
+        <?php endif; ?>
         <div class="score-display"><?php echo round($score); ?></div>
         <div class="performance"><?php echo $performance_message; ?></div>
     </div>
     
     <div class="stats-grid">
+        <?php if ($has_duration && $duration > 0): ?>
         <div class="stat-card">
             <div class="icon">⏱️</div>
             <div class="label">Duration</div>
             <div class="value"><?php echo round($duration); ?>s</div>
         </div>
+        <?php endif; ?>
         
         <?php if ($attempts > 0): ?>
         <div class="stat-card">
@@ -142,11 +161,13 @@ require_once __DIR__ . '/../_header.php';
         </div>
         <?php endif; ?>
         
+        <?php if ($has_difficulty): ?>
         <div class="stat-card">
             <div class="icon">🏆</div>
             <div class="label">Difficulty</div>
             <div class="value"><?php echo ucfirst($difficulty); ?></div>
         </div>
+        <?php endif; ?>
     </div>
     
     <?php if ($stats): ?>
@@ -167,22 +188,64 @@ require_once __DIR__ . '/../_header.php';
     <?php endif; ?>
     
     <?php if ($ranking): ?>
-    <div class="ranking-section" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; text-align: center;">
-        <h3 style="margin: 0 0 15px 0; font-size: 24px;">🏅 Your Global Ranking</h3>
-        <div style="font-size: 48px; font-weight: bold; margin: 10px 0;">
-            #<?php echo number_format($ranking['rank']); ?>
+    <div class="ranking-section" style="margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 24px; text-align: center;">🏅 Your Global Ranking</h3>
+        
+        <!-- Bell Curve Visualization -->
+        <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <svg width="100%" height="150" viewBox="0 0 400 150" style="display: block;">
+                <!-- Bell curve path -->
+                <path d="M 0,140 Q 50,120 100,80 Q 150,30 200,20 Q 250,30 300,80 Q 350,120 400,140" 
+                      fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+                <path d="M 0,140 Q 50,120 100,80 Q 150,30 200,20 Q 250,30 300,80 Q 350,120 400,140 L 400,150 L 0,150 Z" 
+                      fill="url(#gradient)" opacity="0.3"/>
+                
+                <!-- Gradient definition -->
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                        <stop offset="25%" style="stop-color:#ffd93d;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#6bcf7f;stop-opacity:1" />
+                        <stop offset="75%" style="stop-color:#4d96ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#9b59b6;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- Your position marker -->
+                <?php 
+                $markerX = 400 - ($ranking['percentile'] / 100 * 400); // Reverse because higher percentile = better
+                $markerY = 20 + (abs(50 - $ranking['percentile']) / 50 * 120); // Height on bell curve
+                ?>
+                <circle cx="<?php echo $markerX; ?>" cy="<?php echo $markerY; ?>" r="8" fill="#FFD700" stroke="#FFF" stroke-width="3">
+                    <animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                <text x="<?php echo $markerX; ?>" y="<?php echo $markerY - 15; ?>" fill="#FFD700" font-size="14" font-weight="bold" text-anchor="middle">YOU</text>
+                
+                <!-- Percentile markers -->
+                <text x="40" y="145" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">0%</text>
+                <text x="120" y="145" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">25%</text>
+                <text x="200" y="145" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">50%</text>
+                <text x="280" y="145" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">75%</text>
+                <text x="360" y="145" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">100%</text>
+            </svg>
         </div>
-        <div style="font-size: 20px; margin: 10px 0;">
-            out of <?php echo number_format($ranking['total_players']); ?> players
-        </div>
-        <div style="font-size: 32px; font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 10px;">
-            Top <?php echo $ranking['percentile']; ?>%
-        </div>
-        <div style="font-size: 18px; margin-top: 10px;">
-            <?php echo $ranking['message']; ?>
-        </div>
-        <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
-            You're better than <?php echo number_format($ranking['better_than']); ?> player<?php echo $ranking['better_than'] != 1 ? 's' : ''; ?>!
+        
+        <div style="text-align: center;">
+            <div style="font-size: 48px; font-weight: bold; margin: 10px 0;">
+                #<?php echo number_format($ranking['rank']); ?>
+            </div>
+            <div style="font-size: 20px; margin: 10px 0;">
+                out of <?php echo number_format($ranking['total_players']); ?> players
+            </div>
+            <div style="font-size: 32px; font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.2); border-radius: 10px;">
+                Top <?php echo number_format($ranking['percentile'], 1); ?>%
+            </div>
+            <div style="font-size: 18px; margin-top: 10px;">
+                <?php echo $ranking['message']; ?>
+            </div>
+            <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
+                You're better than <?php echo number_format($ranking['better_than']); ?> player<?php echo $ranking['better_than'] != 1 ? 's' : ''; ?>!
+            </div>
         </div>
     </div>
     <?php endif; ?>

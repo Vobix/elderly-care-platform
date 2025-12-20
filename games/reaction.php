@@ -6,13 +6,8 @@
 
 require_once __DIR__ . '/../_header.php';
 
-$config = [
-    'easy' => ['rounds' => 5, 'min_delay' => 2000, 'max_delay' => 4000],
-    'medium' => ['rounds' => 8, 'min_delay' => 1500, 'max_delay' => 3500],
-    'hard' => ['rounds' => 10, 'min_delay' => 1000, 'max_delay' => 3000]
-];
-
-$settings = $config[$difficulty];
+// Fixed settings - no difficulty selection
+$settings = ['rounds' => 5, 'min_delay' => 1500, 'max_delay' => 3500];
 ?>
 
 <link rel="stylesheet" href="/assets/css/game-common.css">
@@ -91,9 +86,8 @@ $settings = $config[$difficulty];
     </div>
 </div>
 
-<form id="result-form" method="POST" action="game_result.php" style="display: none;">
+<form id="result-form" method="POST" action="/pages/game_result.php" style="display: none;">
     <input type="hidden" name="game_type" value="reaction">
-    <input type="hidden" name="difficulty" value="<?php echo $difficulty; ?>">
     <input type="hidden" name="score" id="final-score">
     <input type="hidden" name="duration" id="final-duration">
     <input type="hidden" name="attempts" id="final-attempts">
@@ -103,6 +97,7 @@ $settings = $config[$difficulty];
 // Game configuration from PHP
 const CONFIG = <?php echo json_encode($settings); ?>;
 </script>
+<script src="/assets/js/game-sounds.js"></script>
 <script src="/assets/js/reaction.js"></script>
 <script>
 /* Game logic moved to external JS file

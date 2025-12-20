@@ -111,10 +111,9 @@ require_once __DIR__ . '/../../_header.php';
             <div class="emoji"><?php echo $mood_data[$today_mood['mood_value']]['emoji']; ?></div>
             <h3><?php echo $mood_data[$today_mood['mood_value']]['label']; ?></h3>
             <p style="margin-top: 15px; color: #666;">Logged on <?php echo date('F j, Y', strtotime($today_mood['created_at'])); ?></p>
-            
-            <?php if (!empty($today_mood['mood_text'])): ?>
+            <?php if (!empty($today_mood['notes'])): ?>
                 <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left;">
-                    <strong>Your note:</strong> <?php echo htmlspecialchars($today_mood['mood_text']); ?>
+                    <strong>Your note:</strong> <?php echo htmlspecialchars($today_mood['notes']); ?>
                 </div>
             <?php endif; ?>
             <p style="margin-top: 20px; color: #666;">✅ You can update your mood for today</p>
