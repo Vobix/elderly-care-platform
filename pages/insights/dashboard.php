@@ -43,8 +43,10 @@ $game_names = [
     'puzzle' => '🧩 Puzzle Solver',
     'card_flip' => '🃏 Card Flip',
     'number_memory' => '🔢 Number Memory',
-    'chimp_test' => '🐵 Chimp Test'
-    ];
+    'chimp_test' => '🐵 Chimp Test',
+    'tetris' => '🎮 Tetris',
+    'gem_match' => '💎 Gem Match'
+];
 ?>
 
 <link rel="stylesheet" href="/assets/css/dashboard.css">
@@ -136,7 +138,7 @@ $game_names = [
         
         <?php if ($best_game): ?>
             <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center;">
-                <strong>🏆 Your Best Game:</strong> <?php echo $game_names[$best_game['game_type']]; ?><br>
+                <strong>🏆 Your Best Game:</strong> <?php echo $game_names[$best_game['game_type']] ?? ucwords(str_replace('_', ' ', $best_game['game_type'])); ?><br>
                 Average Score: <?php echo round($best_game['avg_score']); ?>
             </div>
         <?php endif; ?>
