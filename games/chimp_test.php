@@ -73,4 +73,5 @@ const CONFIG = <?php echo json_encode($settings); ?>;
 </script>
 <script src="/assets/js/chimp_test.js"></script>
 
+<script src="/assets/js/game-voice-helper.js"></script>
 <?php require_once __DIR__ . '/../_footer.php'; ?>

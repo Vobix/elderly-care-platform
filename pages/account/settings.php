@@ -150,6 +150,37 @@ require_once __DIR__ . '/../../_header.php';
             document.body.style.fontSize = '100%';
         }
     });
+
+    // Voice assistant toggle with immediate activation
+    document.getElementById('voice_assistant').addEventListener('change', function() {
+        if (window.voiceAssistant) {
+            if (this.checked) {
+                window.voiceAssistant.enable();
+            } else {
+                window.voiceAssistant.disable();
+            }
+        }
+    });
+
+    // Check voice assistant status on load
+    window.addEventListener('load', function() {
+        if (window.voiceAssistant) {
+            const isEnabled = localStorage.getItem('voiceAssistantEnabled') === 'true';
+            const checkbox = document.getElementById('voice_assistant');
+            
+            // Sync checkbox with actual state
+            if (isEnabled && !checkbox.checked) {
+                checkbox.checked = true;
+            } else if (!isEnabled && checkbox.checked) {
+                checkbox.checked = false;
+            }
+            
+            // If enabled, activate it
+            if (isEnabled) {
+                window.voiceAssistant.enable();
+            }
+        }
+    });
 </script>
 
 <?php require_once __DIR__ . '/../../_footer.php'; ?>

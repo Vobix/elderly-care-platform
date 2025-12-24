@@ -331,4 +331,5 @@ function startMultiplayerGame() {
 <script src="/assets/js/game-sounds.js"></script>
 <script src="/assets/js/tetris_multiplayer.js"></script>
 
+<script src="/assets/js/game-voice-helper.js"></script>
 <?php require_once __DIR__ . '/../_footer.php'; ?>

@@ -47,11 +47,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="/assets/css/header.css">
     <link rel="stylesheet" href="/assets/css/footer.css">
     
+    <!-- Voice Assistant Script -->
+    <script src="/assets/js/voice-assistant.js"></script>
+    
     <?php if (isset($extra_css)): ?>
         <?php echo $extra_css; ?>
     <?php endif; ?>
 </head>
-<body class="<?php echo $body_class; ?>">
+<body class="<?php echo $body_class; ?>" data-voice-enabled="<?php echo isset($user_settings['voice_assistant']) && $user_settings['voice_assistant'] ? 'true' : 'false'; ?>">
     
     <nav class="navbar">
         <div class="nav-container">

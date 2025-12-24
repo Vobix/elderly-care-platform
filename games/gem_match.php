@@ -65,4 +65,5 @@ $user_id = $_SESSION['user_id'];
 <script src="/assets/js/game-sounds.js"></script>
 <script src="/assets/js/gem_match.js"></script>
 
+<script src="/assets/js/game-voice-helper.js"></script>
 <?php require_once __DIR__ . '/../_footer.php'; ?>
