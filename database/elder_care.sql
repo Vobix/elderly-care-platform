@@ -103,9 +103,14 @@ CREATE TABLE `games` (
 
 INSERT INTO `games` (`game_id`, `name`, `code`, `description`, `created_at`) VALUES
 (1, 'Reaction Time', 'reaction', 'Test your reflexes and reaction speed', '2025-11-24 07:03:32'),
+(2, 'Memory Match', 'memory', 'Test your memory by matching patterns and sequences', '2025-11-24 07:03:32'),
 (3, 'Number Memory', 'number_memory', 'Remember and recall increasingly longer number sequences', '2025-11-24 07:22:40'),
+(4, 'Attention Focus', 'attention', 'Measure sustained attention and focus ability', '2025-11-24 07:22:40'),
 (5, 'Chimp Test', 'chimp_test', 'Working memory test - remember number positions in sequence', '2025-11-24 07:22:40'),
-(6, 'Card Flip', 'card_flip', 'Pattern matching memory game - flip cards to find matching pairs', '2025-12-13 03:21:38');
+(6, 'Card Flip', 'card_flip', 'Pattern matching memory game - flip cards to find matching pairs', '2025-12-13 03:21:38'),
+(7, 'Puzzle Solver', 'puzzle', 'Challenge your problem-solving and spatial reasoning', '2025-12-13 03:21:38'),
+(8, 'Tetris', 'tetris', 'Classic block-stacking game for spatial awareness', '2025-12-13 03:21:38'),
+(9, 'Gem Match', 'gem_match', 'Match colorful gems in this pattern recognition game', '2025-12-13 03:21:38');
 
 -- --------------------------------------------------------
 

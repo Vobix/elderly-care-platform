@@ -223,13 +223,14 @@ function insertGameSession($user_id, $game_type, $score, $duration, $difficulty 
     }
     
     // C1: Auto Save - Insert game session immediately
-    $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND))");
-    $stmt->execute([$user_id, $game_id, $difficulty, $duration]);
+    $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, NOW(), NOW())");
+    $stmt->execute([$user_id, $game_id, $difficulty]);
     $session_id = $pdo->lastInsertId();
     
     // C1: Auto Save - Insert game score immediately
-    $stmt = $pdo->prepare("INSERT INTO game_scores (session_id, score, accuracy, avg_reaction_ms) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$session_id, $score, $accuracy, $avg_reaction_ms]);
+    $details_json = json_encode(['accuracy' => $accuracy, 'avg_reaction_ms' => $avg_reaction_ms, 'duration' => $duration]);
+    $stmt = $pdo->prepare("INSERT INTO game_scores (session_id, score, accuracy, avg_reaction_ms, details) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$session_id, $score, $accuracy, $avg_reaction_ms, $details_json]);
     
     // C3: Statistics automatically updated by this insert
     // - Times Played incremented (new row added)

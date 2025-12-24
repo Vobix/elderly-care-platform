@@ -169,6 +169,7 @@ require_once __DIR__ . '/../../_header.php';
             </div>
             <div style="text-align: center; margin-top: 20px;">
                 <a href="../diary.php" class="btn btn-primary">📔 View Full Diary</a>
+                <a href="../insights/dashboard.php" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-left: 10px;">📊 View Insights</a>
             </div>
         </div>
     <?php endif; ?>
