@@ -76,7 +76,8 @@ function updateStats() {
 function endGame() {
     const duration = (Date.now() - gameStartTime) / 1000;
     const avgTime = reactionTimes.reduce((a,b) => a+b, 0) / reactionTimes.length;
-    const score = Math.max(0, 100 - (avgTime - 200) / 10);
+    // Exponential decay scoring: 100 at 200ms, ~50 at 500ms, ~25 at 800ms, ~10 at 1200ms
+    const score = 100 * Math.pow(0.995, Math.max(0, avgTime - 200));
     
     document.getElementById('final-score').value = Math.round(score);
     document.getElementById('final-duration').value = duration;

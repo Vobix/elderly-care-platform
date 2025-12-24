@@ -427,11 +427,8 @@ function clearLines() {
                     gameSounds.playLevelUp();
                 }
                 
-                // Update drop speed based on score (5% faster per 100 points)
-                const scoreMultiplier = Math.floor(score / 100);
-                const speedReduction = scoreMultiplier * 0.05; // 5% per 100 points
-                const baseSpeed = 1000 - (level - 1) * 100;
-                dropInterval = Math.max(100, baseSpeed * (1 - speedReduction));
+                // Update drop speed based on level only (100ms faster per level)
+                dropInterval = Math.max(100, 1000 - (level - 1) * 100);
                 
                 updateDisplay();
                 clearingLines = false;

@@ -483,6 +483,12 @@ function applyGravity() {
             }
         }
     }
+    
+    // Check if board is still playable
+    if (!hasValidMoves()) {
+        console.log('No valid moves - shuffling board');
+        shuffleBoard();
+    }
 }
 
 // Fill empty spaces with new gems
@@ -514,6 +520,75 @@ function updateComboDisplay() {
     } else {
         comboDisplay.style.color = '#333';
     }
+}
+
+// Check if any valid moves are possible
+function hasValidMoves() {
+    for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+            // Try swapping with right neighbor
+            if (col < GRID_SIZE - 1) {
+                // Simulate swap
+                const temp = grid[row][col];
+                grid[row][col] = grid[row][col + 1];
+                grid[row][col + 1] = temp;
+                
+                // Check if this creates a match
+                const matches = findAllMatches();
+                
+                // Swap back
+                grid[row][col + 1] = grid[row][col];
+                grid[row][col] = temp;
+                
+                if (matches.length > 0) return true;
+            }
+            
+            // Try swapping with bottom neighbor
+            if (row < GRID_SIZE - 1) {
+                // Simulate swap
+                const temp = grid[row][col];
+                grid[row][col] = grid[row + 1][col];
+                grid[row + 1][col] = temp;
+                
+                // Check if this creates a match
+                const matches = findAllMatches();
+                
+                // Swap back
+                grid[row + 1][col] = grid[row][col];
+                grid[row][col] = temp;
+                
+                if (matches.length > 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Shuffle board when no moves available
+function shuffleBoard() {
+    const allGems = [];
+    for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+            allGems.push(grid[row][col]);
+        }
+    }
+    
+    // Shuffle array
+    for (let i = allGems.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allGems[i], allGems[j]] = [allGems[j], allGems[i]];
+    }
+    
+    // Rebuild grid
+    let idx = 0;
+    for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+            grid[row][col] = allGems[idx++];
+        }
+    }
+    
+    renderGrid();
+    gameSounds.playMove();
 }
 
 // Start timer

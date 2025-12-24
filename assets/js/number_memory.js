@@ -7,12 +7,14 @@ let numDigits;
 let gameStartTime;
 let totalAttempts = 0;
 let correctAnswers = 0;
+let cumulativeScore = 0; // Track total points earned across all levels
 
 function startGame() {
     currentLevel = 1;
     bestScore = 0;
     totalAttempts = 0;
     correctAnswers = 0;
+    cumulativeScore = 0;
     gameStartTime = Date.now();
     numDigits = CONFIG.starting_digits;
     
@@ -70,6 +72,9 @@ function submitAnswer() {
     if (userAnswer === currentNumber) {
         // Correct!
         correctAnswers++;
+        // Award points: 100 points per digit in current level
+        const levelPoints = numDigits * 100;
+        cumulativeScore += levelPoints;
         currentLevel++;
         numDigits++;
         
@@ -103,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function endGame() {
     const duration = (Date.now() - gameStartTime) / 1000;
-    const score = (numDigits - 1) * 100; // Score based on max digits reached
+    const score = cumulativeScore; // Use cumulative score from all successful levels
     const accuracy = (correctAnswers / totalAttempts) * 100;
     
     document.getElementById('final-score').value = score;
