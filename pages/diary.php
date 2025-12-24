@@ -21,9 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['diary_entry'])) {
         $error = "Please write something in your diary entry.";
     } else {
         try {
+            // ⬇️ MATCHES NEW DB: "content" instead of "entry_text"
             $stmt = $pdo->prepare("
-                INSERT INTO diary_entries (user_id, title, entry_text, created_at) 
-                VALUES (?, ?, ?, NOW())
+                INSERT INTO diary_entries (user_id, title, content) 
+                VALUES (?, ?, ?)
             ");
             $stmt->execute([$user_id, $title, $entry]);
             $success = "Diary entry saved successfully!";
@@ -41,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['diary_entry'])) {
 if (isset($_GET['delete'])) {
     $entry_id = (int)$_GET['delete'];
     try {
-        $stmt = $pdo->prepare("DELETE FROM diary_entries WHERE entry_id = ? AND user_id = ?");
+        // ⬇️ MATCHES NEW DB: "diary_id" instead of "entry_id"
+        $stmt = $pdo->prepare("DELETE FROM diary_entries WHERE diary_id = ? AND user_id = ?");
         $stmt->execute([$entry_id, $user_id]);
         $success = "Diary entry deleted successfully!";
         header("Location: diary.php");
@@ -54,10 +56,12 @@ if (isset($_GET['delete'])) {
 
 // Get all diary entries
 try {
+    // ⬇️ We select columns that exist in the new table
     $stmt = $pdo->prepare("
-        SELECT * FROM diary_entries 
+        SELECT diary_id, user_id, title, content, entry_date, created_at 
+        FROM diary_entries 
         WHERE user_id = ? 
-        ORDER BY created_at DESC
+        ORDER BY entry_date DESC, created_at DESC
     ");
     $stmt->execute([$user_id]);
     $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -129,11 +133,12 @@ try {
                                 </h3>
                             <?php endif; ?>
                             <p class="entry-date">
-                                📅 <?php echo date('l, F j, Y', strtotime($entry['created_at'])); ?>
+                                <!-- you can use entry_date or created_at -->
+                                📅 <?php echo date('l, F j, Y', strtotime($entry['entry_date'] ?? $entry['created_at'])); ?>
                                 at <?php echo date('g:i A', strtotime($entry['created_at'])); ?>
                             </p>
                         </div>
-                        <a href="?delete=<?php echo $entry['entry_id']; ?>" 
+                        <a href="?delete=<?php echo $entry['diary_id']; ?>" 
                            onclick="return confirm('Are you sure you want to delete this diary entry?')"
                            class="delete-btn"
                            title="Delete entry">
@@ -141,7 +146,7 @@ try {
                         </a>
                     </div>
                     <div class="entry-text">
-                        <?php echo nl2br(htmlspecialchars($entry['entry_text'])); ?>
+                        <?php echo nl2br(htmlspecialchars($entry['content'])); ?>
                     </div>
                 </div>
             <?php endforeach; ?>

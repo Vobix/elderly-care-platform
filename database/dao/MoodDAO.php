@@ -22,10 +22,10 @@ class MoodDAO {
      */
     public function insert($userId, $level, $notes = null) {
         $stmt = $this->pdo->prepare("
-            INSERT INTO mood_logs (user_id, mood_value, notes, created_at)
-            VALUES (?, ?, ?, NOW())
+            INSERT INTO mood_logs (user_id, mood_value, notes, entry_date, created_at)
+            VALUES (?, ?, ?, CURDATE(), NOW())
         ");
-        
+
         $stmt->execute([$userId, $level, $notes]);
         return $this->pdo->lastInsertId();
     }

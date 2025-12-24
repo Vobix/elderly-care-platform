@@ -84,7 +84,7 @@ require_once __DIR__ . '/../../_header.php';
     </div>
 
     <div style="text-align: center; margin-top: 40px;">
-        <a href="../insights/questionnaire_insights.php" class="btn btn-secondary">← Back to History</a>
+        <a href="../insights/questionnaire_insights.php" class="btn btn-secondary">← View History</a>
     </div>
 </div>
 

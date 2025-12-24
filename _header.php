@@ -43,6 +43,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <title><?php echo isset($page_title) ? $page_title . ' - ' : ''; ?>Elderly Care Platform</title>
     
     <!-- Global Styles -->
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
     <link rel="stylesheet" href="/assets/css/header.css">
     <link rel="stylesheet" href="/assets/css/footer.css">
     
@@ -65,7 +66,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <li><a href="/pages/insights/dashboard.php" class="<?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">📊 Dashboard</a></li>
                     <li><a href="/pages/games.php" class="<?php echo $current_page === 'games.php' ? 'active' : ''; ?>">🎮 Games</a></li>
                     <li><a href="/pages/emotion/mood.php" class="<?php echo $current_page === 'mood.php' ? 'active' : ''; ?>">😊 Mood</a></li>
-                    <li><a href="/pages/insights/questionnaire_insights.php" class="<?php echo $current_page === 'questionnaire_insights.php' ? 'active' : ''; ?>">📋 Assessments</a></li>
+                    <li><a href="/pages/emotion/questionnaire_selection.php">📝 Assessments</a></li>
                     <li><a href="/pages/diary.php" class="<?php echo $current_page === 'diary.php' ? 'active' : ''; ?>">📔 Diary</a></li>
                     <li><a href="/pages/account/profile.php" class="<?php echo $current_page === 'profile.php' ? 'active' : ''; ?>">👤 Profile</a></li>
                     <li><a href="/pages/account/logout.php">🚪 Logout</a></li>
