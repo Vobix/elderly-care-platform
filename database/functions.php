@@ -222,9 +222,9 @@ function insertGameSession($user_id, $game_type, $score, $duration, $difficulty 
         $avg_reaction_ms = isset($details_arr['reaction_time']) ? round($details_arr['reaction_time']) : null;
     }
     
-    // C1: Auto Save - Insert game session immediately
-    $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, NOW(), NOW())");
-    $stmt->execute([$user_id, $game_id, $difficulty]);
+    // C1: Auto Save - Insert game session immediately with proper duration
+    $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, DATE_SUB(NOW(), INTERVAL ? SECOND), NOW())");
+    $stmt->execute([$user_id, $game_id, $difficulty, $duration]);
     $session_id = $pdo->lastInsertId();
     
     // C1: Auto Save - Insert game score immediately

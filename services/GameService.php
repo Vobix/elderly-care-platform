@@ -72,8 +72,9 @@ class GameService {
                 throw new Exception("Failed to get game ID");
             }
             
-            // Save game session
-            $sessionId = $this->gameDAO->createSession($userId, $gameId, $difficulty);
+            // Save game session with duration
+            $duration = isset($details['duration']) ? (int)$details['duration'] : 0;
+            $sessionId = $this->gameDAO->createSession($userId, $gameId, $difficulty, $duration);
             
             if (!$sessionId) {
                 throw new Exception("Failed to save game session");

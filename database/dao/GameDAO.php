@@ -55,14 +55,15 @@ class GameDAO {
      * @param int $userId User ID
      * @param int $gameId Game ID
      * @param string|null $difficulty Difficulty level
+     * @param int $duration Duration in seconds (optional)
      * @return int Session ID
      */
-    public function createSession($userId, $gameId, $difficulty = null) {
+    public function createSession($userId, $gameId, $difficulty = null, $duration = 0) {
         $stmt = $this->pdo->prepare("
             INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at)
-            VALUES (?, ?, ?, NOW(), NOW())
+            VALUES (?, ?, ?, DATE_SUB(NOW(), INTERVAL ? SECOND), NOW())
         ");
-        $stmt->execute([$userId, $gameId, $difficulty]);
+        $stmt->execute([$userId, $gameId, $difficulty, $duration]);
         return $this->pdo->lastInsertId();
     }
     

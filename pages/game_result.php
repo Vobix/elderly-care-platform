@@ -48,6 +48,7 @@ $leaderboard = [];
 if (!empty($game_type) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // Prepare additional details
     $details = [
+        'duration' => $duration,
         'max_score' => $_POST['max_score'] ?? null,
         'accuracy' => $accuracy,
         'level_reached' => $_POST['level_reached'] ?? null,
