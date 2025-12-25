@@ -175,3 +175,60 @@
     border-radius: 10px;
     margin-top: 20px;
 }
+
+/* High Contrast Mode Overrides */
+.high-contrast .gem-container {
+    background-color: #000;
+    color: #fff;
+}
+
+.high-contrast .game-stats,
+.high-contrast .gem-board,
+.high-contrast .game-instructions,
+.high-contrast .game-over-content {
+    background-color: #000;
+    border: 2px solid #00ff00;
+    color: #fff;
+}
+
+.high-contrast .stat-label,
+.high-contrast .game-header p,
+.high-contrast .game-instructions h3 {
+    color: #ffff00;
+}
+
+.high-contrast .stat-value {
+    color: #00ff00;
+}
+
+.high-contrast .game-header h1 {
+    color: #00ff00;
+    text-shadow: 0 0 5px #000;
+}
+
+.high-contrast .timer-bar-container {
+    background-color: #333;
+    border: 1px solid #fff;
+}
+
+.high-contrast .timer-bar {
+    color: #000;
+    font-weight: 800;
+}
+
+.high-contrast .gem {
+    background-color: #1a1a1a;
+    border: 1px solid #ffff00;
+}
+
+.high-contrast .gem:hover {
+    box-shadow: 0 0 10px #ffff00;
+    z-index: 5;
+}
+
+.high-contrast .gem.selected {
+    background-color: #333;
+    border: 3px solid #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+}
+

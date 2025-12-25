@@ -75,10 +75,11 @@ CREATE TABLE `baseline_assessments` (
 --
 
 CREATE TABLE `diary_entries` (
-  `entry_id` bigint(20) UNSIGNED NOT NULL,
+  `diary_id` bigint(20) UNSIGNED NOT NULL,
   `user_id` int(10) UNSIGNED NOT NULL,
   `title` varchar(255) DEFAULT NULL,
-  `entry_text` text NOT NULL,
+  `content` text NOT NULL,
+  `entry_date` date DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -103,14 +104,9 @@ CREATE TABLE `games` (
 
 INSERT INTO `games` (`game_id`, `name`, `code`, `description`, `created_at`) VALUES
 (1, 'Reaction Time', 'reaction', 'Test your reflexes and reaction speed', '2025-11-24 07:03:32'),
-(2, 'Memory Match', 'memory', 'Test your memory by matching patterns and sequences', '2025-11-24 07:03:32'),
 (3, 'Number Memory', 'number_memory', 'Remember and recall increasingly longer number sequences', '2025-11-24 07:22:40'),
-(4, 'Attention Focus', 'attention', 'Measure sustained attention and focus ability', '2025-11-24 07:22:40'),
 (5, 'Chimp Test', 'chimp_test', 'Working memory test - remember number positions in sequence', '2025-11-24 07:22:40'),
-(6, 'Card Flip', 'card_flip', 'Pattern matching memory game - flip cards to find matching pairs', '2025-12-13 03:21:38'),
-(7, 'Puzzle Solver', 'puzzle', 'Challenge your problem-solving and spatial reasoning', '2025-12-13 03:21:38'),
-(8, 'Tetris', 'tetris', 'Classic block-stacking game for spatial awareness', '2025-12-13 03:21:38'),
-(9, 'Gem Match', 'gem_match', 'Match colorful gems in this pattern recognition game', '2025-12-13 03:21:38');
+(6, 'Card Flip', 'card_flip', 'Pattern matching memory game - flip cards to find matching pairs', '2025-12-13 03:21:38');
 
 -- --------------------------------------------------------
 
@@ -347,7 +343,7 @@ ALTER TABLE `baseline_assessments`
 -- Indexes for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
-  ADD PRIMARY KEY (`entry_id`),
+  ADD PRIMARY KEY (`diary_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `idx_created_at` (`created_at`);
 
@@ -473,7 +469,7 @@ ALTER TABLE `baseline_assessments`
 -- AUTO_INCREMENT for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
-  MODIFY `entry_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `diary_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `games`

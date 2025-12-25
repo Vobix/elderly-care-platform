@@ -326,3 +326,73 @@
 .export-btn:hover {
     background: #218838;
 }
+
+/* High Contrast Mode */
+.high-contrast .page-header h1,
+.high-contrast .page-header p {
+    color: #ffff00;
+}
+
+.high-contrast .summary-card {
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+    box-shadow: none;
+}
+
+.high-contrast .summary-card h3,
+.high-contrast .summary-card .stats {
+    color: #fff;
+    border-top-color: #333;
+}
+
+.high-contrast .summary-card .stat-value {
+    color: #ffff00;
+}
+
+.high-contrast .history-section {
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+}
+
+.high-contrast .history-section h2 {
+    color: #ffff00;
+}
+
+.high-contrast .history-section p {
+    color: #ccc !important;
+}
+
+.high-contrast .chart-container {
+    background: #000;
+    border: 1px solid #333;
+}
+
+.high-contrast .chart h3 {
+    color: #fff !important;
+}
+
+.high-contrast .chart {
+    border-bottom-color: #ffff00;
+}
+
+.high-contrast .chart-bar-value,
+.high-contrast .chart-bar-label {
+    color: #fff;
+}
+
+.high-contrast .timeline-item {
+    background: #000;
+    border-color: #ffff00;
+}
+
+.high-contrast .timeline-date {
+    color: #ffff00;
+}
+
+.high-contrast .timeline-details {
+    color: #ccc;
+}
+
+.high-contrast .view-details-btn {
+    border: 1px solid #ffff00;
+}

@@ -52,6 +52,15 @@
     border-color: #667eea;
 }
 
+.alert-warning {
+    background: #fff3cd; 
+    border: 2px solid #ffc107; 
+    color: #856404;
+    padding: 20px; 
+    border-radius: 10px; 
+    margin-bottom: 30px;
+}
+
 /* High Contrast Mode */
 .high-contrast .question-card {
     background: #1a1a1a;
@@ -67,4 +76,29 @@
 .high-contrast .answer-option input[type="radio"]:checked + label {
     background: #ffff00;
     color: #000;
+}
+
+.high-contrast .alert-warning {
+    background: #1a1a1a;
+    border-color: #ffff00;
+    color: #ffff00;
+}
+
+/* Fix Assessment Cards in High Contrast (overriding inline styles) */
+.high-contrast .assessment-card {
+    background: #1a1a1a !important;
+    border: 3px solid #ffff00 !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.high-contrast .assessment-card h3,
+.high-contrast .assessment-card p,
+.high-contrast .assessment-card div {
+    color: #fff !important;
+}
+
+.high-contrast .assessment-card:hover {
+    background: #000 !important;
+    border-color: #00ff00 !important;
 }

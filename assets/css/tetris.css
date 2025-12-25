@@ -377,3 +377,81 @@
     gap: 15px;
     min-width: 140px;
 }
+
+/* High Contrast Mode Overrides */
+.high-contrast .tetris-container,
+.high-contrast .mode-selection,
+.high-contrast .controls-modal {
+    background-color: #000;
+    color: #fff;
+}
+
+.high-contrast .game-header h1 {
+    color: #ffff00;
+}
+
+.high-contrast .mode-btn {
+    background-color: #000;
+    border: 3px solid #ffff00;
+    color: #ffff00;
+}
+
+.high-contrast .mode-btn p {
+    color: #00ff00;
+}
+
+.high-contrast .mode-btn:hover {
+    box-shadow: 0 0 15px #ffff00;
+    border-color: #fff;
+}
+
+.high-contrast .player-area,
+.high-contrast .controls-content,
+.high-contrast .game-instructions,
+.high-contrast .player-section,
+.high-contrast .stats-box,
+.high-contrast .next-piece-box,
+.high-contrast .controls,
+.high-contrast .player-controls-sidebar,
+.high-contrast .control-item {
+    background-color: #000;
+    border: 2px solid #00ff00;
+    color: #fff;
+}
+
+.high-contrast .player-header,
+.high-contrast .game-instructions h3,
+.high-contrast h4,
+.high-contrast h3,
+.high-contrast .stat-label,
+.high-contrast .control-item span:not(.key) {
+    color: #ffff00;
+}
+
+.high-contrast .stat-value {
+    color: #00ff00;
+}
+
+.high-contrast .key-display,
+.high-contrast .key {
+    background-color: #1a1a1a;
+    border: 1px solid #fff;
+    color: #ffff00;
+}
+
+.high-contrast .start-game-btn {
+    background-color: #000;
+    border: 2px solid #ffff00;
+    color: #ffff00;
+    font-weight: bold;
+}
+
+.high-contrast .start-game-btn:hover {
+    background-color: #333;
+    box-shadow: 0 0 10px #ffff00;
+}
+
+.high-contrast .game-board {
+    border-color: #ffff00;
+}
+

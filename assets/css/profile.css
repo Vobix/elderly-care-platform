@@ -141,3 +141,70 @@
     margin: 10px 0;
     padding-left: 20px;
 }
+
+/* High Contrast Mode Overrides */
+.high-contrast .profile-container {
+    background: #1a1a1a;
+    border: 3px solid #ffff00;
+    color: #fff;
+    box-shadow: none;
+}
+
+.high-contrast .profile-header {
+    border-bottom: 2px solid #ffff00;
+}
+
+.high-contrast .profile-info h1 {
+    color: #ffff00;
+}
+
+.high-contrast .profile-info p {
+    color: #fff;
+}
+
+.high-contrast .avatar-preview,
+.high-contrast .avatar-placeholder {
+    border-color: #ffff00;
+}
+
+.high-contrast .avatar-placeholder {
+    background: #333;
+    color: #ffff00;
+}
+
+.high-contrast .form-group input,
+.high-contrast .form-group select {
+    background: #000;
+    color: #fff;
+    border: 2px solid #ffff00;
+}
+
+.high-contrast .btn-save {
+    background: #000;
+    color: #ffff00;
+    border: 3px solid #ffff00;
+}
+
+.high-contrast .btn-save:hover {
+    background: #333;
+}
+
+.high-contrast .nav-links a {
+    background: #000;
+    color: #ffff00;
+    border: 1px solid #ffff00;
+}
+
+.high-contrast .nav-links a:hover {
+    background: #333;
+}
+
+.high-contrast .accessibility-info {
+    background: #003366;
+    border: 2px solid #00ffff;
+    color: #fff;
+}
+
+.high-contrast .accessibility-info a {
+    color: #00ffff;
+}

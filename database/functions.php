@@ -11,7 +11,8 @@ require_once __DIR__ . '/config.php';
 /**
  * Get user by email
  */
-function getUserByEmail($email) {
+function getUserByEmail($email)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
     $stmt->execute([$email]);
@@ -21,7 +22,8 @@ function getUserByEmail($email) {
 /**
  * Get user by ID
  */
-function getUserById($user_id) {
+function getUserById($user_id)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ? LIMIT 1");
     $stmt->execute([$user_id]);
@@ -31,7 +33,8 @@ function getUserById($user_id) {
 /**
  * Create new user
  */
-function createUser($email, $password_hash) {
+function createUser($email, $password_hash)
+{
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO users (email, password, created_at) VALUES (?, ?, NOW())");
     $stmt->execute([$email, $password_hash]);
@@ -41,7 +44,8 @@ function createUser($email, $password_hash) {
 /**
  * Check if email exists
  */
-function emailExists($email) {
+function emailExists($email)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
     $stmt->execute([$email]);
@@ -53,7 +57,8 @@ function emailExists($email) {
 /**
  * Get user profile
  */
-function getUserProfile($user_id) {
+function getUserProfile($user_id)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? LIMIT 1");
     $stmt->execute([$user_id]);
@@ -63,7 +68,8 @@ function getUserProfile($user_id) {
 /**
  * Create default profile
  */
-function createDefaultProfile($user_id) {
+function createDefaultProfile($user_id)
+{
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO profiles (user_id, created_at) VALUES (?, NOW())");
     $stmt->execute([$user_id]);
@@ -73,14 +79,33 @@ function createDefaultProfile($user_id) {
 /**
  * Update user profile
  */
-function updateProfile($user_id, $full_name, $date_of_birth, $gender, $avatar_url = null) {
+/**
+ * Update user profile
+ * Uses INSERT ... ON DUPLICATE KEY UPDATE to handle cases where profile doesn't exist yet
+ */
+function updateProfile($user_id, $full_name, $date_of_birth, $gender, $avatar_url = null)
+{
     global $pdo;
+
     if ($avatar_url !== null) {
-        $stmt = $pdo->prepare("UPDATE profiles SET full_name = ?, date_of_birth = ?, gender = ?, avatar_url = ? WHERE user_id = ?");
-        $stmt->execute([$full_name, $date_of_birth, $gender, $avatar_url, $user_id]);
+        $sql = "INSERT INTO profiles (user_id, full_name, date_of_birth, gender, avatar_url, created_at) 
+                VALUES (?, ?, ?, ?, ?, NOW()) 
+                ON DUPLICATE KEY UPDATE 
+                full_name = VALUES(full_name), 
+                date_of_birth = VALUES(date_of_birth), 
+                gender = VALUES(gender), 
+                avatar_url = VALUES(avatar_url)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$user_id, $full_name, $date_of_birth, $gender, $avatar_url]);
     } else {
-        $stmt = $pdo->prepare("UPDATE profiles SET full_name = ?, date_of_birth = ?, gender = ? WHERE user_id = ?");
-        $stmt->execute([$full_name, $date_of_birth, $gender, $user_id]);
+        $sql = "INSERT INTO profiles (user_id, full_name, date_of_birth, gender, created_at) 
+                VALUES (?, ?, ?, ?, NOW()) 
+                ON DUPLICATE KEY UPDATE 
+                full_name = VALUES(full_name), 
+                date_of_birth = VALUES(date_of_birth), 
+                gender = VALUES(gender)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$user_id, $full_name, $date_of_birth, $gender]);
     }
     return $stmt->rowCount();
 }
@@ -90,25 +115,27 @@ function updateProfile($user_id, $full_name, $date_of_birth, $gender, $avatar_ur
 /**
  * Get user settings
  */
-function getUserSettings($user_id) {
+function getUserSettings($user_id)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM user_settings WHERE user_id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $settings = $stmt->fetch();
-    
+
     // Convert font size to boolean for backward compatibility
     if ($settings) {
         $settings['large_font'] = ($settings['preferred_font_size'] === 'large' || $settings['preferred_font_size'] === 'xlarge') ? 1 : 0;
         $settings['voice_assistant'] = $settings['voice_assistant_enabled'];
     }
-    
+
     return $settings;
 }
 
 /**
  * Create default settings
  */
-function createDefaultSettings($user_id) {
+function createDefaultSettings($user_id)
+{
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO user_settings (user_id, high_contrast, preferred_font_size, voice_assistant_enabled, tap_only_mode, created_at) VALUES (?, 0, 'normal', 0, 0, NOW())");
     $stmt->execute([$user_id]);
@@ -118,7 +145,8 @@ function createDefaultSettings($user_id) {
 /**
  * Update user settings
  */
-function updateSettings($user_id, $high_contrast, $large_font, $voice_assistant, $tap_only_mode) {
+function updateSettings($user_id, $high_contrast, $large_font, $voice_assistant, $tap_only_mode)
+{
     global $pdo;
     // Convert boolean to font size
     $font_size = $large_font ? 'large' : 'normal';
@@ -137,7 +165,8 @@ function updateSettings($user_id, $high_contrast, $large_font, $voice_assistant,
  * @implements C1: Mood Save Rule - entry_date must not be null, mood_value required (1-5)
  * @implements C3: Optional Notes Rule - notes can be empty string, entry still saves
  */
-function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '') {
+function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '')
+{
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO mood_logs (user_id, entry_date, mood_value, mood_emoji, notes) VALUES (?, CURDATE(), ?, ?, ?) ON DUPLICATE KEY UPDATE mood_value = ?, mood_emoji = ?, notes = ?");
     $stmt->execute([$user_id, $mood_value, $mood_emoji, $mood_text, $mood_value, $mood_emoji, $mood_text]);
@@ -151,7 +180,8 @@ function insertMood($user_id, $mood_value, $mood_emoji = '', $mood_text = '') {
  * Get recent mood entries
  * @implements C2: History Update Rule - ORDER BY entry_date DESC ensures newest entries display first
  */
-function getRecentMood($user_id, $limit = 10) {
+function getRecentMood($user_id, $limit = 10)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM mood_logs WHERE user_id = ? ORDER BY entry_date DESC LIMIT ?");
     $stmt->execute([$user_id, $limit]);
@@ -161,7 +191,8 @@ function getRecentMood($user_id, $limit = 10) {
 /**
  * Get mood statistics for date range
  */
-function getMoodStats($user_id, $days = 30) {
+function getMoodStats($user_id, $days = 30)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT AVG(mood_value) as avg_mood, MIN(mood_value) as min_mood, MAX(mood_value) as max_mood, COUNT(*) as total_entries FROM mood_logs WHERE user_id = ? AND entry_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)");
     $stmt->execute([$user_id, $days]);
@@ -173,16 +204,17 @@ function getMoodStats($user_id, $days = 30) {
 /**
  * Get or create game ID by name/code
  */
-function getGameId($game_type) {
+function getGameId($game_type)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT game_id FROM games WHERE code = ? LIMIT 1");
     $stmt->execute([$game_type]);
     $game = $stmt->fetch();
-    
+
     if ($game) {
         return $game['game_id'];
     }
-    
+
     // Create game if it doesn't exist
     $game_names = [
         'memory' => 'Memory Match',
@@ -191,7 +223,7 @@ function getGameId($game_type) {
         'puzzle' => 'Puzzle Solver'
     ];
     $name = $game_names[$game_type] ?? ucfirst($game_type);
-    
+
     $stmt = $pdo->prepare("INSERT INTO games (name, code) VALUES (?, ?)");
     $stmt->execute([$name, $game_type]);
     return $pdo->lastInsertId();
@@ -207,12 +239,13 @@ function getGameId($game_type) {
  *     - If Score > Best Score -> Best Score = Score (calculated in getUserGameStats)
  *     - Average Score = Total Score / Times Played (calculated in getUserGameStats)
  */
-function insertGameSession($user_id, $game_type, $score, $duration, $difficulty = 'medium', $details = null) {
+function insertGameSession($user_id, $game_type, $score, $duration, $difficulty = 'medium', $details = null)
+{
     global $pdo;
-    
+
     // Get game ID
     $game_id = getGameId($game_type);
-    
+
     // Parse details if provided as JSON
     $accuracy = null;
     $avg_reaction_ms = null;
@@ -221,21 +254,21 @@ function insertGameSession($user_id, $game_type, $score, $duration, $difficulty 
         $accuracy = $details_arr['accuracy'] ?? null;
         $avg_reaction_ms = isset($details_arr['reaction_time']) ? round($details_arr['reaction_time']) : null;
     }
-    
+
     // C1: Auto Save - Insert game session immediately with proper duration
     $stmt = $pdo->prepare("INSERT INTO game_sessions (user_id, game_id, difficulty, started_at, ended_at) VALUES (?, ?, ?, DATE_SUB(NOW(), INTERVAL ? SECOND), NOW())");
     $stmt->execute([$user_id, $game_id, $difficulty, $duration]);
     $session_id = $pdo->lastInsertId();
-    
+
     // C1: Auto Save - Insert game score immediately
     $details_json = json_encode(['accuracy' => $accuracy, 'avg_reaction_ms' => $avg_reaction_ms, 'duration' => $duration]);
     $stmt = $pdo->prepare("INSERT INTO game_scores (session_id, score, accuracy, avg_reaction_ms, details) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$session_id, $score, $accuracy, $avg_reaction_ms, $details_json]);
-    
+
     // C3: Statistics automatically updated by this insert
     // - Times Played incremented (new row added)
     // - Best Score and Average Score recalculated on next query
-    
+
     return $session_id;
 }
 
@@ -248,7 +281,8 @@ function insertGameSession($user_id, $game_type, $score, $duration, $difficulty 
  *     - Best Score = MAX(score) = highest score achieved
  *     - Average Score = AVG(score) = Total Score / Times Played
  */
-function getUserGameStats($user_id, $game_type = null) {
+function getUserGameStats($user_id, $game_type = null)
+{
     global $pdo;
     if ($game_type) {
         // C3: Calculate statistics using formula
@@ -284,7 +318,8 @@ function getUserGameStats($user_id, $game_type = null) {
 /**
  * Get recent game sessions
  */
-function getRecentGameSessions($user_id, $limit = 10) {
+function getRecentGameSessions($user_id, $limit = 10)
+{
     global $pdo;
     $stmt = $pdo->prepare("
         SELECT gs.*, g.code as game_type, gsc.score,
@@ -305,16 +340,17 @@ function getRecentGameSessions($user_id, $limit = 10) {
 /**
  * Get or create questionnaire ID by type/code
  */
-function getQuestionnaireId($questionnaire_type) {
+function getQuestionnaireId($questionnaire_type)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT questionnaire_id FROM questionnaires WHERE short_code = ? LIMIT 1");
     $stmt->execute([$questionnaire_type]);
     $questionnaire = $stmt->fetch();
-    
+
     if ($questionnaire) {
         return $questionnaire['questionnaire_id'];
     }
-    
+
     // Create questionnaire if it doesn't exist
     $name = ucfirst($questionnaire_type) . ' Assessment';
     $stmt = $pdo->prepare("INSERT INTO questionnaires (name, short_code) VALUES (?, ?)");
@@ -325,12 +361,13 @@ function getQuestionnaireId($questionnaire_type) {
 /**
  * Insert questionnaire result
  */
-function insertQuestionnaireResult($user_id, $questionnaire_type, $total_score, $answers_json) {
+function insertQuestionnaireResult($user_id, $questionnaire_type, $total_score, $answers_json)
+{
     global $pdo;
-    
+
     // Get questionnaire ID
     $questionnaire_id = getQuestionnaireId($questionnaire_type);
-    
+
     // Insert response
     $stmt = $pdo->prepare("INSERT INTO questionnaire_responses (user_id, questionnaire_id, score, responses) VALUES (?, ?, ?, ?)");
     $stmt->execute([$user_id, $questionnaire_id, $total_score, $answers_json]);
@@ -340,20 +377,24 @@ function insertQuestionnaireResult($user_id, $questionnaire_type, $total_score, 
 /**
  * Get questionnaire results
  */
-function getQuestionnaireResults($user_id, $questionnaire_type = null) {
+/**
+ * Get questionnaire results
+ */
+function getQuestionnaireResults($user_id, $questionnaire_type = null)
+{
     global $pdo;
     if ($questionnaire_type) {
         $stmt = $pdo->prepare("
-            SELECT qr.*, q.short_code as questionnaire_type, q.name as questionnaire_name 
+            SELECT qr.*, q.type as questionnaire_type, q.short_code, q.name as questionnaire_name 
             FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
-            WHERE qr.user_id = ? AND q.short_code = ? 
+            WHERE qr.user_id = ? AND q.type = ? 
             ORDER BY qr.completed_at DESC
         ");
         $stmt->execute([$user_id, $questionnaire_type]);
     } else {
         $stmt = $pdo->prepare("
-            SELECT qr.*, q.short_code as questionnaire_type, q.name as questionnaire_name 
+            SELECT qr.*, q.type as questionnaire_type, q.short_code, q.name as questionnaire_name 
             FROM questionnaire_responses qr
             JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
             WHERE qr.user_id = ? 
@@ -367,13 +408,14 @@ function getQuestionnaireResults($user_id, $questionnaire_type = null) {
 /**
  * Get latest questionnaire result
  */
-function getLatestQuestionnaireResult($user_id, $questionnaire_type) {
+function getLatestQuestionnaireResult($user_id, $questionnaire_type)
+{
     global $pdo;
     $stmt = $pdo->prepare("
-        SELECT qr.*, q.short_code as questionnaire_type, q.name as questionnaire_name 
+        SELECT qr.*, q.type as questionnaire_type, q.short_code, q.name as questionnaire_name 
         FROM questionnaire_responses qr
         JOIN questionnaires q ON qr.questionnaire_id = q.questionnaire_id
-        WHERE qr.user_id = ? AND q.short_code = ? 
+        WHERE qr.user_id = ? AND q.type = ? 
         ORDER BY qr.completed_at DESC 
         LIMIT 1
     ");
@@ -386,7 +428,8 @@ function getLatestQuestionnaireResult($user_id, $questionnaire_type) {
 /**
  * Insert diary entry
  */
-function insertDiaryEntry($user_id, $title, $content) {
+function insertDiaryEntry($user_id, $title, $content)
+{
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO diary_entries (user_id, title, content, created_at) VALUES (?, ?, ?, NOW())");
     $stmt->execute([$user_id, $title, $content]);
@@ -396,7 +439,8 @@ function insertDiaryEntry($user_id, $title, $content) {
 /**
  * Get user diary entries
  */
-function getDiaryEntries($user_id, $limit = 20, $offset = 0) {
+function getDiaryEntries($user_id, $limit = 20, $offset = 0)
+{
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM diary_entries WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
     $stmt->execute([$user_id, $limit, $offset]);
@@ -408,7 +452,8 @@ function getDiaryEntries($user_id, $limit = 20, $offset = 0) {
 /**
  * Sanitize input
  */
-function sanitizeInput($data) {
+function sanitizeInput($data)
+{
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
@@ -418,21 +463,24 @@ function sanitizeInput($data) {
 /**
  * Validate email format
  */
-function isValidEmail($email) {
+function isValidEmail($email)
+{
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 /**
  * Format date for display
  */
-function formatDate($date, $format = 'F j, Y') {
+function formatDate($date, $format = 'F j, Y')
+{
     return date($format, strtotime($date));
 }
 
 /**
  * Calculate age from date of birth
  */
-function calculateAge($date_of_birth) {
+function calculateAge($date_of_birth)
+{
     $dob = new DateTime($date_of_birth);
     $now = new DateTime();
     $age = $now->diff($dob);

@@ -191,8 +191,26 @@
     margin: 20px 0;
 }
 
+.mood-note {
+    background: white; 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-top: 15px; 
+    text-align: left;
+}
+
 .recent-moods {
     margin-top: 40px;
+}
+/* ... existing content ... */
+.high-contrast .mood-entry .date {
+    color: #ffff00;
+}
+
+.high-contrast .mood-note {
+    background: #000;
+    border: 1px solid #ffff00;
+    color: #fff;
 }
 
 .recent-moods h3 {
@@ -268,15 +286,17 @@
 }
 
 .high-contrast .today-mood {
-    background: #003366;
-    border: 2px solid #00ffff;
+    background: #1a1a1a;
+    border: 2px solid #ffff00;
+    color: #fff;
 }
 
 .high-contrast .mood-entry {
-    background: #1a1a1a;
-    border-color: #ffff00;
+    background: #1a1a1a !important; /* Forces dark bg over inline gradient */
+    border: 2px solid #ffff00;
+    color: #fff;
 }
 
 .high-contrast .mood-entry .date {
-    color: #ccc;
+    color: #ffff00;
 }

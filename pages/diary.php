@@ -16,7 +16,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['diary_entry'])) {
     $title = trim($_POST['title'] ?? '');
     $entry = trim($_POST['diary_entry'] ?? '');
-    
+
     if (empty($entry)) {
         $error = "Please write something in your diary entry.";
     } else {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['diary_entry'])) {
             ");
             $stmt->execute([$user_id, $title, $entry]);
             $success = "Diary entry saved successfully!";
-            
+
             // Clear form
             $_POST = [];
         } catch (PDOException $e) {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['diary_entry'])) {
 
 // Handle delete entry
 if (isset($_GET['delete'])) {
-    $entry_id = (int)$_GET['delete'];
+    $entry_id = (int) $_GET['delete'];
     try {
         // ⬇️ MATCHES NEW DB: "diary_id" instead of "entry_id"
         $stmt = $pdo->prepare("DELETE FROM diary_entries WHERE diary_id = ? AND user_id = ?");
@@ -95,22 +95,15 @@ try {
                 <label for="title" class="form-label">
                     📝 Title (Optional)
                 </label>
-                <input type="text" 
-                       id="title" 
-                       name="title" 
-                       class="form-input"
-                       placeholder="Give your entry a title...">
+                <input type="text" id="title" name="title" class="form-input" placeholder="Give your entry a title...">
             </div>
 
             <div class="form-group">
                 <label for="diary_entry" class="form-label">
                     💭 Your Diary Entry *
                 </label>
-                <textarea id="diary_entry" 
-                          name="diary_entry" 
-                          required
-                          class="form-textarea"
-                          placeholder="What's on your mind today? Share your thoughts, feelings, experiences, or anything you'd like to remember..."></textarea>
+                <textarea id="diary_entry" name="diary_entry" required class="form-textarea"
+                    placeholder="What's on your mind today? Share your thoughts, feelings, experiences, or anything you'd like to remember..."></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary btn-save">
@@ -138,10 +131,9 @@ try {
                                 at <?php echo date('g:i A', strtotime($entry['created_at'])); ?>
                             </p>
                         </div>
-                        <a href="?delete=<?php echo $entry['diary_id']; ?>" 
-                           onclick="return confirm('Are you sure you want to delete this diary entry?')"
-                           class="delete-btn"
-                           title="Delete entry">
+                        <a href="?delete=<?php echo $entry['diary_id']; ?>"
+                            onclick="return confirm('Are you sure you want to delete this diary entry?')" class="delete-btn"
+                            title="Delete entry">
                             🗑️
                         </a>
                     </div>
