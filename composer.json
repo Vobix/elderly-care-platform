@@ -1,0 +1,8 @@
+{
+    "name": "elderly-care/platform",
+    "description": "Elderly Care Platform",
+    "type": "project",
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

@@ -11,6 +11,7 @@ require_once __DIR__ . '/../../database/functions.php';
 
 $user_id = $_SESSION['user_id'];
 $user = getUserById($user_id);
+$profile = getUserProfile($user_id);
 
 // Get mood stats
 $mood_stats = getMoodStats($user_id, 7);
@@ -52,7 +53,10 @@ $game_names = [
 <link rel="stylesheet" href="/assets/css/dashboard.css">
 
 <div class="dashboard-header">
-    <div class="welcome">Welcome back, <?php echo htmlspecialchars($user['full_name'] ?? $user['email']); ?>! 👋</div>
+    <div class="welcome">Welcome back, <?php 
+        $display_name = $profile['full_name'] ?? $user['full_name'] ?? $user['email'];
+        echo htmlspecialchars($display_name); 
+    ?>! 👋</div>
     <p style="font-size: 18px; color: #666;">Here's your wellness overview</p>
 </div>
 

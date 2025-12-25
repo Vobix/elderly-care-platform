@@ -1,6 +1,7 @@
 # Environment files
 .env
 .env.local
+database/email_config.php
 
 # IDE and Editor files
 .vscode/
@@ -37,9 +38,9 @@ user_files/
 node_modules/
 package-lock.json
 
-# Composer (if using PHP dependencies)
-vendor/
-composer.lock
+# Composer dependencies (keep these in repo for deployment)
+# vendor/
+# composer.lock
 
 # Session files
 sessions/

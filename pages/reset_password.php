@@ -2,6 +2,13 @@
 session_start();
 require_once __DIR__ . '/../database/config.php';
 require_once __DIR__ . '/../database/functions.php';
+require_once __DIR__ . '/../database/email_config.php';
+
+// PHPMailer
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require __DIR__ . '/../vendor/autoload.php';
 
 $error = '';
 $success = '';
@@ -33,25 +40,31 @@ if ($method === 'POST' && isset($_POST['email'])) {
             $_SESSION['reset_code_time'] = time();
             $step = 2;
 
-            // Send Email using PHP's built-in mail() function
-            $to = $email;
-            $subject = "Your Password Reset Code - Elderly Care Platform";
-            $message = "Hello " . $user['username'] . ",\n\n";
-            $message .= "Your password reset code is: " . $_SESSION['reset_code'] . "\n\n";
-            $message .= "This code is valid for 10 minutes.\n\n";
-            $message .= "If you did not request this, please ignore this email.\n";
-            $headers = "From: noreply@elderly-care.local\r\n";
-            $headers .= "Reply-To: support@elderly-care.local\r\n";
-            $headers .= "X-Mailer: PHP/" . phpversion();
+            // Send Email
+            $mail = new PHPMailer(true);
+            try {
+                $mail->isSMTP();
+                $mail->Host       = SMTP_HOST;
+                $mail->SMTPAuth   = SMTP_AUTH;
+                $mail->Username   = SMTP_USERNAME;
+                $mail->Password   = SMTP_PASSWORD;
+                $mail->SMTPSecure = SMTP_SECURE;
+                $mail->Port       = SMTP_PORT;
 
-            // Try to send email (may not work in local development without mail server)
-            $mailSent = @mail($to, $subject, $message, $headers);
-            
-            if ($mailSent) {
+                // Sender
+                $mail->setFrom(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
+                // Recipient
+                $mail->addAddress($email, $user['username']);
+
+                // Email content
+                $mail->isHTML(true);
+                $mail->Subject = 'Your Password Reset Code';
+                $mail->Body    = "Hello ".$user['username'].",<br>Your password reset code is: <b>".$_SESSION['reset_code']."</b><br>This code is valid for 10 minutes.";
+
+                $mail->send();
                 $success = "An identification code has been sent to your email.";
-            } else {
-                // Email sending failed (common in XAMPP), show code for testing
-                $success = "Demo Mode - Your verification code is: <b>" . $_SESSION['reset_code'] . "</b>";
+            } catch (Exception $e) {
+                $error = "Failed to send email: {$mail->ErrorInfo}. Demo Code: ".$_SESSION['reset_code'];
             }
 
         } else {
@@ -130,7 +143,7 @@ if ($method === 'POST' && isset($_POST['new_password'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reset Password - Elderly Care Platform</title>
+    <title>Reset Password - Mind Mosaic</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/assets/css/header.css">
     <link rel="stylesheet" href="/assets/css/footer.css">

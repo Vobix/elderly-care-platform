@@ -54,7 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$user['is_active']) {
                     $error = "Your account has been deactivated. Please contact support.";
                 } else {
-                    // Password is correct - start session
+                    // Password is correct - regenerate session ID for security
+                    session_regenerate_id(true);
+                    
+                    // Start session
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['email'] = $user['email'];
                     $_SESSION['username'] = $user['username'];
@@ -102,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Elderly Care Platform</title>
+    <title>Login - Mind Mosaic</title>
     <link rel="stylesheet" href="/assets/css/header.css">
     <link rel="stylesheet" href="/assets/css/footer.css">
     <link rel="stylesheet" href="/assets/css/auth.css">

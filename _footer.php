@@ -1,7 +1,7 @@
     </div> <!-- Close container -->
     
     <footer>
-        <p>&copy; <?php echo date('Y'); ?> Elderly Care Platform. All rights reserved.</p>
+        <p>&copy; <?php echo date('Y'); ?> Mind Mosaic. All rights reserved.</p>
         <p>
             <a href="/pages/account/settings.php">Accessibility Settings</a>
         </p>

@@ -18,7 +18,7 @@ require_once __DIR__ . '/_header.php';
 <link rel="stylesheet" href="/assets/css/home.css">
 
 <div class="hero">
-    <h1>🏥 Elderly Care Platform</h1>
+    <h1><img src="/assets/images/favicon.ico" alt="Mind Mosaic" style="height: 48px; vertical-align: middle; margin-right: 12px;">Mind Mosaic</h1>
     <p>Comprehensive wellness tracking for seniors</p>
     <p style="font-size: 18px; margin-bottom: 30px;">
         Monitor mood, play cognitive games, and track your mental wellness

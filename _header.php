@@ -40,7 +40,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . ' - ' : ''; ?>Elderly Care Platform</title>
+    <title><?php echo isset($page_title) ? $page_title . ' - ' : ''; ?>Mind Mosaic</title>
     
     <!-- Global Styles -->
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
@@ -58,7 +58,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/index.php" class="nav-brand">🏥 Elderly Care</a>
+            <a href="/index.php" class="nav-brand"><img src="/assets/images/human-brain.png" alt="Mind Mosaic" style="height: 32px; vertical-align: middle; margin-right: 8px;">Mind Mosaic</a>
             
             <?php if (isset($_SESSION['user_id'])): ?>
                 <ul class="nav-menu">

@@ -36,7 +36,7 @@ require_once __DIR__ . '/../../_header.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baseline Assessment - Elderly Care Platform</title>
+    <title>Baseline Assessment - Mind Mosaic</title>
     <link rel="stylesheet" href="/assets/css/questionnaire.css">
     <style>
         .selection-container {
