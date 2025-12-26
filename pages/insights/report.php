@@ -248,42 +248,61 @@ foreach ($period as $date) {
     </div>
     <?php endif; ?>
     
-    <div class="section">
+        <div class="section">
         <h2>📈 Weekly Trends</h2>
 
-        <!-- Mood bar view -->
-        <?php if (!empty($week_moods)): ?>
-            <h3>Mood Entries</h3>
-            <div style="display: flex; gap: 10px; align-items: flex-end; height: 150px; margin: 20px 0;">
-                <?php foreach (array_reverse(array_slice($week_moods, 0, 7)) as $mood): ?>
-                    <div style="flex: 1; background: linear-gradient(to top, #667eea, #764ba2); border-radius: 5px 5px 0 0; height: <?php echo ($mood['mood_value'] / 5) * 100; ?>%; min-height: 20px; position: relative;">
-                        <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap;">
-                            <?php echo date('M j', strtotime($mood['entry_date'])); ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <p>No mood data for this week.</p>
-        <?php endif; ?>
+        <!-- Toggle buttons -->
+        <div class="trend-toggle">
+            <button type="button"
+                    class="trend-toggle-btn active"
+                    data-view="mood">
+                Mood Trends Charts
+            </button>
+            <button type="button"
+                    class="trend-toggle-btn"
+                    data-view="compare">
+                Compare Mood & Game Performance
+            </button>
+        </div>
 
-        <!-- Compare patterns chart -->
-        <?php if (!empty($week_moods) && !empty($week_games)): ?>
-            <h3 style="margin-top: 40px;">Compare Mood & Game Performance</h3>
-            <canvas id="compareChart" height="120"></canvas>
-            <p style="margin-top: 10px; font-size: 14px;">
-                <?php 
-                    echo $correlation_insight 
-                        ? htmlspecialchars($correlation_insight) 
-                        : 'No clear pattern yet. Keep logging moods and playing games for better insights.';
-                ?>
-            </p>
-        <?php else: ?>
-            <p style="margin-top: 30px; font-size: 14px;">
-                To compare patterns, please log mood entries and play at least one cognitive game this week.
-            </p>
-        <?php endif; ?>
+        <!-- Mood Entries view -->
+        <div id="trend-mood" class="trend-view">
+            <?php if (!empty($week_moods)): ?>
+                <h3>Mood Entries</h3>
+                <div style="display: flex; gap: 10px; align-items: flex-end; height: 150px; margin: 20px 0;">
+                    <?php foreach (array_reverse(array_slice($week_moods, 0, 7)) as $mood): ?>
+                        <div style="flex: 1; background: linear-gradient(to top, #667eea, #764ba2); border-radius: 5px 5px 0 0; height: <?php echo ($mood['mood_value'] / 5) * 100; ?>%; min-height: 20px; position: relative;">
+                            <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap;">
+                                <?php echo date('M j', strtotime($mood['entry_date'])); ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p>No mood data for this week.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Compare Mood & Game Performance view -->
+        <div id="trend-compare" class="trend-view" style="display:none;">
+            <?php if (!empty($week_moods) && !empty($week_games)): ?>
+                <h3 style="margin-top: 10px;">Compare Mood & Game Performance</h3>
+                <canvas id="compareChart" height="120"></canvas>
+                <p style="margin-top: 10px; font-size: 14px;">
+                    <?php 
+                        echo $correlation_insight 
+                            ? htmlspecialchars($correlation_insight) 
+                            : 'No clear pattern yet. Keep logging moods and playing games for better insights.';
+                    ?>
+                </p>
+            <?php else: ?>
+                <p style="margin-top: 10px; font-size: 14px;">
+                    To compare patterns, please log mood entries and play at least one cognitive game this week.
+                </p>
+            <?php endif; ?>
+        </div>
     </div>
+
 
         <!-- 🧠 Mental Wellness Insights (from questionnaires) -->
     <div class="section">
@@ -387,6 +406,43 @@ foreach ($period as $date) {
         <a href="../diary.php" class="btn btn-secondary">📔 View Diary</a>
     </div>
 </div>
+
+<script>
+    // Toggle between Mood view / Compare view
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.trend-toggle-btn');
+        const moodView = document.getElementById('trend-mood');
+        const compareView = document.getElementById('trend-compare');
+
+        function setView(view) {
+            if (view === 'mood') {
+                moodView.style.display = 'block';
+                compareView.style.display = 'none';
+            } else {
+                moodView.style.display = 'none';
+                compareView.style.display = 'block';
+            }
+
+            buttons.forEach(btn => {
+                if (btn.dataset.view === view) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                setView(this.dataset.view);
+            });
+        });
+
+        // default view
+        setView('mood');
+    });
+</script>
+
 
 <!-- Chart.js & compare-pattern chart script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

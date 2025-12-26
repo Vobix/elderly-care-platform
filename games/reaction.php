@@ -82,7 +82,7 @@ $settings = ['rounds' => 5, 'min_delay' => 1500, 'max_delay' => 3500];
     
     <div style="margin-top: 20px;">
         <button class="btn btn-success" id="start-btn" onclick="startGame()">▶️ Start Game</button>
-        <a href="games.php" class="btn btn-secondary">← Back</a>
+        <a href="/pages/games.php" class="btn btn-secondary">← Back</a>
     </div>
 </div>
 

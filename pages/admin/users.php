@@ -17,6 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         if ($action === 'deactivate' && $targetUserId) {
+            // Prevent self-deactivation
+            if ($targetUserId == $_SESSION['user_id']) {
+                throw new Exception("You cannot deactivate your own account.");
+            }
+            
             // C1: Confirmation already handled by JavaScript
             $stmt = $pdo->prepare("UPDATE users SET is_active = 0 WHERE user_id = ?");
             $stmt->execute([$targetUserId]);

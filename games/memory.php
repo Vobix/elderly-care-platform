@@ -246,7 +246,7 @@ $settings = $config[$difficulty];
         <button class="btn btn-success" id="start-btn" onclick="startGame()">▶️ Start Game</button>
         <button class="btn btn-primary" id="submit-btn" onclick="checkAnswer()" style="display: none;">✓ Submit Answer</button>
         <button class="btn btn-secondary" id="next-btn" onclick="nextRound()" style="display: none;">→ Next Round</button>
-        <a href="games.php" class="btn btn-secondary">← Back to Games</a>
+        <a href="/pages/games.php" class="btn btn-secondary">← Back to Games</a>
     </div>
 </div>
 
