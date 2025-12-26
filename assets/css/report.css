@@ -192,3 +192,28 @@
     border-bottom: none;
 }
 
+
+.trend-toggle {
+    display: inline-flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #f3f4f6;
+}
+
+.trend-toggle-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.trend-toggle-btn.active {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+
